@@ -1,0 +1,30 @@
+<mat-card class="control-panel-card">
+    <div class="header">
+        <h2>Control Panel</h2>
+        <mat-divider></mat-divider>
+    </div>
+    <div class="container">
+        <div class="content">
+            <form [formGroup]="form">
+                @for (field of fields; track field) {
+                <mat-form-field appearance="outline" style="width: 100%;">
+                    <mat-label>{{field.alias}}</mat-label>
+                    <input matInput [formControlName]="field.title" autocomplete="off">
+                </mat-form-field>
+                <p></p>
+                }
+            </form>
+        </div>
+        <mat-divider></mat-divider>
+    </div>
+    <div class="footer">
+        <button class="primary-button" style="width: 100%;" (click)="run()" [disabled]="form.invalid || running"
+            mat-raised-button>
+            Start Observation
+        </button>
+        <p></p>
+        <button class="warn-button" style="width: 100%;" (click)="openCancelDialog()" [disabled]="!running" mat-raised-button>
+            Cancel Observation
+        </button>
+    </div>
+</mat-card>

@@ -1,0 +1,29 @@
+<div class="login-container">
+    <mat-card class="login-card">
+        <div style="width: 100%; text-align: center;">
+            <h2>Sign in</h2>
+            <h3>Sign in with your email and password</h3>
+        </div>
+        <mat-card-actions>
+            <form style="width: 100%;" [formGroup]="form">
+                <mat-form-field appearance="outline" style="width: 100%;">
+                    <mat-label>E-mail</mat-label>
+                    <input matInput formControlName="email" autocomplete="off">
+                </mat-form-field>
+                <p></p>
+                <mat-form-field appearance="outline" style="width: 100%;">
+                    <mat-label>Password</mat-label>
+                    <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" type="password"
+                        autocomplete="off">
+                    <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-pressed]="!hide"
+                        style="margin-right: 5px;">
+                        <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    </button>
+                </mat-form-field>
+                <p></p>
+                <button class="primary-button" style="width: 100%;" (click)="emailLogin()" [disabled]="form.invalid || loading"
+                    mat-raised-button>Login</button>
+            </form>
+        </mat-card-actions>
+    </mat-card>
+</div>

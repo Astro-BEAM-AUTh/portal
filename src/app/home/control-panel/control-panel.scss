@@ -1,0 +1,32 @@
+.control-panel-card {
+
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+            overflow-y: auto;
+
+    .header {
+        width: 100%;
+        text-align: center;
+    }
+
+    .container {
+
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+            overflow-y: auto;
+
+        .content {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+    }
+
+    .footer {
+        padding: 1rem;
+    }
+
+}

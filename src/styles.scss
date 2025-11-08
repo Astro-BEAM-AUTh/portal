@@ -1,0 +1,41 @@
+@use '@angular/material' as mat;
+@include mat.core();
+
+$primary-color: rgb(255, 208, 0);
+$warn-color: rgb(231, 90, 90);
+
+html {
+  @include mat.theme((color: (theme-type: dark,
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    ));
+}
+
+html,
+body {
+  height: 100dvh;
+  width: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  color: antiquewhite;
+}
+
+
+.primary-button {
+  @include mat.button-overrides((protected-container-color: $primary-color, protected-label-text-color: black,
+      protected-container-shape: 5px));
+}
+
+.warn-button {
+  @include mat.button-overrides((protected-container-color: $warn-color, protected-label-text-color: black,
+      protected-container-shape: 5px));
+}
+
+.warn-snackbar {
+  @include mat.theme((color: mat.$red-palette));
+  @include mat.button-overrides((outlined-container-shape: 5px));
+}
+

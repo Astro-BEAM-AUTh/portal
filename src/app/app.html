@@ -1,0 +1,21 @@
+<div class="app">
+  <mat-toolbar class="header">
+    <span class="contents">
+      <img class="logo" src="img/astrobeam-logo.png">
+      <h4 class="title" style="margin-left: 25px;">Radiometer Control</h4>
+      <span class="spacer"></span>
+      @if (auth.isAuthenticated()) {
+      <button matIconButton matTooltip="Log-out" (click)="logout()">
+        <mat-icon>logout</mat-icon>
+      </button>
+      }
+    </span>
+  </mat-toolbar>
+  <div class="container">
+    <div class="content">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+  <!-- <mat-toolbar class="footer">
+  </mat-toolbar> -->
+</div>

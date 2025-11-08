@@ -1,0 +1,61 @@
+.app {
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+
+    .header {
+
+        height: 70px;
+        background-color: black;
+        box-shadow: 0 0 .5em rgba(255, 255, 255, 0.5);
+        z-index: 2;
+
+        .contents {
+
+            display: flex;
+            width: 100%;
+            align-items: center;
+            height: 100%;
+            max-width: 1238px;
+            margin: auto;
+
+            .logo {
+                height: 100px;
+                max-height: 95%;
+            }
+
+            .title {
+                margin-left: 25px;
+            }
+
+            .spacer {
+                flex: 1 1 auto;
+            }
+
+        }
+    }
+
+    .container {
+
+        background-image: url('../../public/img/background-dark.jpg');
+        flex: 1;
+        padding: 0 16px;
+        overflow-y: auto;
+
+        .content {
+            height: 100%;
+            max-width: 1238px;
+            margin: auto;
+        }
+    }
+
+    .footer {
+        height: 35px;
+        background-color: black;
+        box-shadow: 0 0 .5em rgba(255, 255, 255, 0.5);
+        z-index: 2;
+    }
+
+}
