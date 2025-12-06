@@ -15,6 +15,9 @@ updates:
     assignees:
       - "dyka3773"
     target-branch: "develop"
+    ignore:
+      - dependency-name: "@angular*"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-dependencies:
         patterns:
