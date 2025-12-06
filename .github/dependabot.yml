@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # Enable version updates for Node dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+      - "npm"
+      - "node"
+    assignees:
+      - "dyka3773"
+    target-branch: "develop"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@angular*"
+      angular-dependencies:
+        applies-to: "version-updates"
+        patterns:
+          - "@angular*"
+        update-types:
+          - "minor"
+          - "patch"
