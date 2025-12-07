@@ -1,6 +1,6 @@
 {
   "branches": ["main"],
-  "repositoryUrl": "https://github.com/Astro-BEAM-AUTh/portal",
+  "repositoryUrl": "https://github.com/Astro-BEAM-AUTh/apps",
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
@@ -23,7 +23,7 @@
     [
       "@semantic-release/release-notes-generator",
       {
-        "preset": "angular",
+        "preset": "conventionalcommits",
         "presetConfig": {
           "types": [
             { "type": "feat", "section": "Features" },
@@ -37,9 +37,6 @@
             { "type": "chore", "section": "Chores" },
             { "type": "ci", "section": "CI/CD" }
           ]
-        },
-        "writerOpts": {
-          "commitsSort": ["scope", "subject"]
         }
       }
     ],
