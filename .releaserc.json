@@ -1,6 +1,6 @@
 {
   "branches": ["main"],
-  "repositoryUrl": "https://github.com/Astro-BEAM-AUTh/apps",
+  "repositoryUrl": "https://github.com/Astro-BEAM-AUTh/portal",
   "plugins": [
     [
       "@semantic-release/commit-analyzer",
