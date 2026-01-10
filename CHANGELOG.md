@@ -7,4 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- insertion marker -->
 
+## [1.0.2](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.0.1...v1.0.2) (2026-01-10)
+
+### Dependencies
+
+* bump the npm-dependencies group across 1 directory with 2 updates ([9b187e4](https://github.com/Astro-BEAM-AUTh/portal/commit/9b187e4548230a1f8445b143f169bccde2d879f7))
+* bump the npm-dependencies group with 2 updates ([2c360d2](https://github.com/Astro-BEAM-AUTh/portal/commit/2c360d2c63430d13f25820e7de08212ba21cfd77))
+* **ci:** add the dependencies needed by semantic release ([018acf8](https://github.com/Astro-BEAM-AUTh/portal/commit/018acf8c05946f2298a4f214bf81d4e026b77ca0))
+
+### CI/CD
+
+* fix the repo url during semantic release ([82c85aa](https://github.com/Astro-BEAM-AUTh/portal/commit/82c85aacbfabe5f33a258e40d534bd9e7279abb4))
+* fix the set of types of commits to be analyzed when releasing ([9e59174](https://github.com/Astro-BEAM-AUTh/portal/commit/9e591740ab857d6f63ee0c63dd85304367a1b00e))
+* switch to conventionalcommits preset for comprehensive changelog generation ([099226a](https://github.com/Astro-BEAM-AUTh/portal/commit/099226af4d796c6b6390954cfaf9bec03839dd44))
+
 ## [1.0.1](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.0.0...v1.0.1) (2025-12-07)
