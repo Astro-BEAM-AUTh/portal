@@ -1,11 +1,32 @@
-<mat-card class="observation-history-card">
-    <div class="header">
-        <h2>Observation History</h2>
-        <mat-divider></mat-divider>
-    </div>
-    <div class="container">
-        <div class="content">
-           
+<div style="display: flex; flex-direction: column; height: 100%; margin-left: 1vw">
+    <mat-card class="observation-history-card" style="flex-grow: 1; height: 100%; margin-bottom: 2vh;">
+        <div class="header">
+            <h2>Observation Status</h2>
+            <mat-divider></mat-divider>
         </div>
-    </div>
-</mat-card>
+        <div class="container">
+            <div class="content">
+            
+            </div>
+        </div>
+    </mat-card>
+
+    <mat-card class="observation-history-card" style="flex-grow: 1; height: 100;">
+        <div class="header">
+            <h2>Observation History</h2>
+            <mat-divider></mat-divider>
+        </div>
+        <div class="container">
+            <div class="content">
+                @for(pastSubmission of observationSubmissions(); track pastSubmission){
+                    <!-- <mat-card-content>
+                        @for(field of pastSubmission; track field){
+                            {{field}} <br>
+                        }
+                    </mat-card-content> -->
+                    {{pastSubmission}}
+                }
+            </div>
+        </div>
+    </mat-card>
+</div>

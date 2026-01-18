@@ -4,10 +4,10 @@ import { MatDividerModule } from '@angular/material/divider';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
-import { CancelObservation } from './cancel-observation/cancel-observation';
 import { ObservationsService } from '../../../services/observations';
+import { observationSubmissionSignal } from '../../../services/signal'
 
 @Component({
   selector: 'app-control-panel',
@@ -17,6 +17,7 @@ import { ObservationsService } from '../../../services/observations';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
   ],
   templateUrl: './control-panel.html',
@@ -40,25 +41,30 @@ export class ControlPanel {
     this.form = this.fb.group(controls)
   }
 
-  running = false;
+  // running = false;
 
   run() {
-    this.running = true
+    // this.running = true
     console.log(this.form.value)
+    observationSubmissionSignal.set(this.form.value);
   }
+  /*
+  add bb gain, ra, dec, obs type, 
+  observation object is assigned at runtime
+  integration duration same as duration in s
+  autogen output filename
 
-  readonly dialog = inject(MatDialog);
+  cooldown, no more than 1h between obs, maybe elevated privs
 
-  openCancelDialog() {
-    // this.running = false
-    let dialogRef = this.dialog.open(CancelObservation, { autoFocus: false, panelClass: ['primary-button', 'custom-modalbox'] });
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`); // Pizza!
-    });
-  }
-
-  cancel() {
-    this.running = false
-  }
+  ranges:
+  observation type 1. Cold Calibration 2. Hot Calibration 3. Target Observation
+  gains: 0-30
+  ra: 0-359
+  dec: 0-90
+  duration: until 30m
+  center freq: - pending - (ex: 1.42e9)
+  bandwith: pending
+  bins: pending
+  */
 
 }
