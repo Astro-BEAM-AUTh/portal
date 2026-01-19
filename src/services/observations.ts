@@ -5,7 +5,7 @@ import { Validators } from '@angular/forms';
   providedIn: 'root',
 })
 
-//! NOT INCLUDING: Observation object, observation type, need input for those
+//! NOT INCLUDING: Observation object, target name, observation type, need input for those
 export class ObservationsService {
 
   observation_fields = [
@@ -17,6 +17,14 @@ export class ObservationsService {
       validators: [Validators.required]
     },
     {
+      title: 'obsType',
+      alias: 'Observation Type',
+      type: 'select',
+      defaultValue: 'Hot Observation',
+      values: ["Cold Calibration", "Hot Calibration", "Target Observation"],
+      validators: [Validators.required]
+    },
+    {
       title: 'cFreq',
       alias: 'Center Frequency (Hz)',
       type: 'text',
@@ -24,8 +32,8 @@ export class ObservationsService {
       validators: [Validators.required]
     },
     {
-      title: 'bandwith',
-      alias: 'Bandwith',
+      title: 'bandwidth',
+      alias: 'Bandwidth',
       type: 'select',
       defaultValue: '2.4MHz',
       values: ["500kHz", "1MHz", "2MHz", "2.4MHz", "3.2MHz"],
@@ -44,21 +52,42 @@ export class ObservationsService {
       alias: 'Number of Bins',
       type: 'text',
       defaultValue: 500,
-      validators: [Validators.required]
+      validators: [Validators.required] //pending range
     },
     {
       title: 'rfGain',
       alias: 'RF Gain',
       type: 'text',
       defaultValue: '20',
-      validators: [Validators.required]
+      validators: [Validators.required, Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ifGain',
       alias: 'IF Gain',
       type: 'text',
       defaultValue: '10',
-      validators: [Validators.required]
+      validators: [Validators.required, Validators.min(0), Validators.max(30)]
+    },
+    {
+      title: 'bbGain',
+      alias: 'BB Gain',
+      type: 'text',
+      defaultValue: '10',
+      validators: [Validators.required, Validators.min(0), Validators.max(30)]
+    },
+    {
+      title: 'ra',
+      alias: 'RA',
+      type: 'text',
+      defaultValue: '10',
+      validators: [Validators.required, Validators.min(0), Validators.max(359)]
+    },
+    {
+      title: 'dec',
+      alias: 'DEC',
+      type: 'text',
+      defaultValue: '10',
+      validators: [Validators.required, Validators.min(0), Validators.max(90)]
     },
     {
       title: 'duration',
@@ -66,7 +95,7 @@ export class ObservationsService {
       type: 'text',
       defaultValue: 60,
       placeholder: 'Enter the duration of the observation here...',
-      validators: [Validators.required]
+      validators: [Validators.required, Validators.min(0), Validators.max(1800)]
     },
     {
       title: 'csvBool',
@@ -76,6 +105,19 @@ export class ObservationsService {
       values: ["Yes", "No"],
       validators: [Validators.required]
     },
+
+  /*
+  observation object is assigned at runtime
+  integration duration same as duration in s
+  autogen output filename
+
+  cooldown, no more than 1h between obs, maybe elevated privs
+
+  ranges:
+  center freq: - pending - (ex: 1.42e9)
+  bandwith: pending
+  bins: pending
+  */
 
   ]
 

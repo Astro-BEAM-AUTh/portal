@@ -8,6 +8,9 @@ import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
 import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
+import { observationBodyDTO } from './dtos/control-panel.dto';
+import { formatDate } from '@angular/common';
+import { AuthService } from '../../../services/auth';
 
 @Component({
   selector: 'app-control-panel',
@@ -28,6 +31,7 @@ export class ControlPanel {
 
   private ObservationsService = inject(ObservationsService);
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
 
   fields;
   form;
@@ -43,28 +47,53 @@ export class ControlPanel {
 
   // running = false;
 
-  run() {
+  async run() {
     // this.running = true
-    console.log(this.form.value)
     observationSubmissionSignal.set(this.form.value);
+
+    const user = this.auth.user();
+
+    const reqBody: observationBodyDTO = {
+      "observation": {
+        "observation_name": <String>this.form.value["name"],
+        "center_frequency": <Number>this.form.value["cFreq"],
+        "rf_gain": Number(this.form.value["rfGain"]),
+        "if_gain": Number(this.form.value["ifGain"]),
+        "bb_gain": Number(this.form.value["bbGain"]),
+        "dec": Number(this.form.value["dec"]),
+        "ra": Number(this.form.value["ra"]),
+        "bins": <Number>this.form.value["bins"],
+        "channels": <Number>this.form.value["channels"],
+        "bandwidth": <String>this.form.value["bandwidth"],
+        "integration_time": <Number>this.form.value["duration"],
+        "observation_type": <String>this.form.value["obsType"],
+        "output_filename": "Observation_" + formatDate(Date.now(), "yy-MM-dd-HH-MM-SS", "en-US"),
+        "receive_csv": <Boolean>this.form.value["csvBool"],
+      },
+      "requestor":{
+        "email": user?.email || "",
+        "username": user?.user_metadata["username"] || "",
+        "user_id": user?.id || ""
+      },
+    }
+    try{
+      console.log(reqBody)
+      const url = "https://test-backend-astro.irakliskonsoulas.site/"
+      const endpoint = "v1/telescope/observations"
+      const res = await fetch(url + endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reqBody)
+      })
+      if(!res.ok){
+        throw new Error(`Response Status: ${res.status}`)
+      }
+      console.log(res.body)
+    } catch(e){
+      console.log(e)
+    }
   }
-  /*
-  add bb gain, ra, dec, obs type, 
-  observation object is assigned at runtime
-  integration duration same as duration in s
-  autogen output filename
-
-  cooldown, no more than 1h between obs, maybe elevated privs
-
-  ranges:
-  observation type 1. Cold Calibration 2. Hot Calibration 3. Target Observation
-  gains: 0-30
-  ra: 0-359
-  dec: 0-90
-  duration: until 30m
-  center freq: - pending - (ex: 1.42e9)
-  bandwith: pending
-  bins: pending
-  */
 
 }
