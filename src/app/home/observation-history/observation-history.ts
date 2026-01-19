@@ -21,6 +21,7 @@ export class ObservationHistory {
 
   constructor(){
     effect(()=>{
+      //TODO: Store history persistantly per user
       this.observationSubmissions.update((self: any) => [...self.filter((e:any)=> {if(e !== null) return e}), observationSubmissionSignal()])
       console.log(this.observationSubmissions())
     })

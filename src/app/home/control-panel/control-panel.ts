@@ -85,7 +85,7 @@ export class ControlPanel {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(reqBody)
+        body: JSON.stringify(reqBody) //! 422 - CANNOT PROCESS (19-01-26)
       })
       if(!res.ok){
         throw new Error(`Response Status: ${res.status}`)
