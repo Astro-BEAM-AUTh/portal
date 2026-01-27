@@ -9,16 +9,18 @@
                 @for (field of fields; track field) {
                     @if (field.type == "text"){
                         <mat-form-field appearance="outline" style="width: 100%;"
-                        [class.invalid]="field.validators.length >= 1 && !form.get(field.title)">
+                        [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
                             <mat-label>{{field.alias}}</mat-label>
-                            <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off">
+                            <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off"
+                                #inputElement    
+                                (input)="form.get(field.title)?.setValue(+inputElement.value)">
                         </mat-form-field>
                         <p></p>
                     }
                     @if (field.type == "select"){
                         <mat-form-field appearance="outline" style="width: 100%;">
                             <mat-label>{{field.alias}}</mat-label>
-                            <mat-select>
+                            <mat-select [formControlName]="field.title">
                                 @for (value of field.values; track value){
                                     <mat-option [value]="value">
                                         {{value}}
@@ -38,8 +40,5 @@
             Submit Observation
         </button>
         <p></p>
-        <!-- <button class="warn-button" style="width: 100%;" (click)="openCancelDialog()" [disabled]="!running" mat-raised-button>
-            Cancel Observation
-        </button> -->
     </div>
 </mat-card>

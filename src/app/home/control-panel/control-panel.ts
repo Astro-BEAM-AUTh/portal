@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { formatDate } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -8,8 +9,7 @@ import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
 import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
-import { observationBodyDTO } from './dtos/control-panel.dto';
-import { formatDate } from '@angular/common';
+import { observationBodyDTO, observationFormDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -48,27 +48,27 @@ export class ControlPanel {
   // running = false;
 
   async run() {
-    // this.running = true
-    observationSubmissionSignal.set(this.form.value);
+    const observation: observationFormDTO = this.form.getRawValue() as unknown as observationFormDTO;
+    observationSubmissionSignal.set({...observation , status: "Pending"});
 
     const user = this.auth.user();
 
     const reqBody: observationBodyDTO = {
       "observation": {
-        "observation_name": <String>this.form.value["name"],
-        "center_frequency": <Number>this.form.value["cFreq"],
+        "observation_name": String(this.form.value["name"]),
+        "center_frequency": Number(this.form.value["cFreq"]),
         "rf_gain": Number(this.form.value["rfGain"]),
         "if_gain": Number(this.form.value["ifGain"]),
         "bb_gain": Number(this.form.value["bbGain"]),
         "dec": Number(this.form.value["dec"]),
         "ra": Number(this.form.value["ra"]),
-        "bins": <Number>this.form.value["bins"],
-        "channels": <Number>this.form.value["channels"],
-        "bandwidth": <String>this.form.value["bandwidth"],
-        "integration_time": <Number>this.form.value["duration"],
-        "observation_type": <String>this.form.value["obsType"],
-        "output_filename": "Observation_" + formatDate(Date.now(), "yy-MM-dd-HH-MM-SS", "en-US"),
-        "receive_csv": <Boolean>this.form.value["csvBool"],
+        "bins": Number(this.form.value["bins"]),
+        "channels": Number(this.form.value["channels"]),
+        "bandwidth": String(this.form.value["bandwidth"]),
+        "integration_time": Number(this.form.value["duration"]),
+        "observation_type": String(this.form.value["obsType"]),
+        "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
+        "receive_csv": this.form.value["csvBool"] === "Yes",
       },
       "requestor":{
         "email": user?.email || "",
@@ -77,7 +77,6 @@ export class ControlPanel {
       },
     }
     try{
-      console.log(reqBody)
       const url = "https://test-backend-astro.irakliskonsoulas.site/"
       const endpoint = "v1/telescope/observations"
       const res = await fetch(url + endpoint, {
@@ -92,7 +91,7 @@ export class ControlPanel {
       }
       console.log(res.body)
     } catch(e){
-      console.log(e)
+      console.error(e)
     }
   }
 

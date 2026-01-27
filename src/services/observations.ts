@@ -5,7 +5,6 @@ import { Validators } from '@angular/forms';
   providedIn: 'root',
 })
 
-//! NOT INCLUDING: Observation object, target name, observation type, need input for those
 export class ObservationsService {
 
   observation_fields = [
@@ -17,10 +16,10 @@ export class ObservationsService {
       validators: [Validators.required]
     },
     {
-      title: 'obsType',
+      title: 'observationType',
       alias: 'Observation Type',
       type: 'select',
-      defaultValue: 'Hot Observation',
+      defaultValue: 'Hot Calibration',
       values: ["Cold Calibration", "Hot Calibration", "Target Observation"],
       validators: [Validators.required]
     },
@@ -58,35 +57,35 @@ export class ObservationsService {
       title: 'rfGain',
       alias: 'RF Gain',
       type: 'text',
-      defaultValue: '20',
+      defaultValue: 20,
       validators: [Validators.required, Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ifGain',
       alias: 'IF Gain',
       type: 'text',
-      defaultValue: '10',
+      defaultValue: 10,
       validators: [Validators.required, Validators.min(0), Validators.max(30)]
     },
     {
       title: 'bbGain',
       alias: 'BB Gain',
       type: 'text',
-      defaultValue: '10',
+      defaultValue: 10,
       validators: [Validators.required, Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ra',
       alias: 'RA',
       type: 'text',
-      defaultValue: '10',
+      defaultValue: 10,
       validators: [Validators.required, Validators.min(0), Validators.max(359)]
     },
     {
       title: 'dec',
       alias: 'DEC',
       type: 'text',
-      defaultValue: '10',
+      defaultValue: 10,
       validators: [Validators.required, Validators.min(0), Validators.max(90)]
     },
     {

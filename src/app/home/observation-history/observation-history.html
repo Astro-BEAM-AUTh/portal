@@ -15,7 +15,7 @@
         </div>
     </mat-card>
 
-    <mat-card class="observation-history-card" style="flex-grow: 1; height: 100;">
+    <mat-card class="observation-history-card" style="flex-grow: 1; height: 100%;">
         <div class="header">
             <h2>Observation History</h2>
             <mat-divider></mat-divider>
@@ -32,11 +32,15 @@
                             </mat-expansion-panel-header>
                             <div>
                                 <div><strong>Center Frequency:</strong> {{pastSubmission.cFreq}}</div>
-                                <div><strong>Bandwidth:</strong> {{pastSubmission.bandwith}}</div>
+                                <div><strong>Bandwidth:</strong> {{pastSubmission.bandwidth}}</div>
                                 <div><strong>Channels:</strong> {{pastSubmission.channels}}</div>
                                 <div><strong>Bins:</strong> {{pastSubmission.bins}}</div>
                                 <div><strong>RF Gain:</strong> {{pastSubmission.rfGain}}</div>
                                 <div><strong>IF Gain:</strong> {{pastSubmission.ifGain}}</div>
+                                <div><strong>Observation Type:</strong> {{pastSubmission.observationType}}</div>
+                                <div><strong>RA:</strong> {{pastSubmission.ra}}</div>
+                                <div><strong>DEC:</strong> {{pastSubmission.dec}}</div>
+                                <div><strong>BB Gain:</strong> {{pastSubmission.bbGain}}</div>
                                 <div><strong>Duration:</strong> {{pastSubmission.duration}}s</div>
                                 <div><strong>CSV Output:</strong> {{pastSubmission.csvBool}}</div>
                             </div>
