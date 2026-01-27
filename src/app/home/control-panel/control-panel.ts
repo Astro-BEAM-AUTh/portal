@@ -1,13 +1,16 @@
 import { Component, inject } from '@angular/core';
+import { formatDate } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
-import { CancelObservation } from './cancel-observation/cancel-observation';
 import { ObservationsService } from '../../../services/observations';
+import { observationSubmissionSignal } from '../../../services/signal'
+import { observationBodyDTO, observationFormDTO } from './dtos/control-panel.dto';
+import { AuthService } from '../../../services/auth';
 
 @Component({
   selector: 'app-control-panel',
@@ -17,6 +20,7 @@ import { ObservationsService } from '../../../services/observations';
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatButtonModule,
   ],
   templateUrl: './control-panel.html',
@@ -27,6 +31,7 @@ export class ControlPanel {
 
   private ObservationsService = inject(ObservationsService);
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
 
   fields;
   form;
@@ -40,25 +45,54 @@ export class ControlPanel {
     this.form = this.fb.group(controls)
   }
 
-  running = false;
+  // running = false;
 
-  run() {
-    this.running = true
-    console.log(this.form.value)
-  }
+  async run() {
+    const observation: observationFormDTO = this.form.getRawValue() as unknown as observationFormDTO;
+    observationSubmissionSignal.set({...observation , status: "Pending"});
 
-  readonly dialog = inject(MatDialog);
+    const user = this.auth.user();
 
-  openCancelDialog() {
-    // this.running = false
-    let dialogRef = this.dialog.open(CancelObservation, { autoFocus: false, panelClass: ['primary-button', 'custom-modalbox'] });
-    dialogRef.afterClosed().subscribe(result => {
-      console.log(`Dialog result: ${result}`); // Pizza!
-    });
-  }
-
-  cancel() {
-    this.running = false
+    const reqBody: observationBodyDTO = {
+      "observation": {
+        "observation_name": String(this.form.value["name"]),
+        "center_frequency": Number(this.form.value["cFreq"]),
+        "rf_gain": Number(this.form.value["rfGain"]),
+        "if_gain": Number(this.form.value["ifGain"]),
+        "bb_gain": Number(this.form.value["bbGain"]),
+        "dec": Number(this.form.value["dec"]),
+        "ra": Number(this.form.value["ra"]),
+        "bins": Number(this.form.value["bins"]),
+        "channels": Number(this.form.value["channels"]),
+        "bandwidth": String(this.form.value["bandwidth"]),
+        "integration_time": Number(this.form.value["duration"]),
+        "observation_type": String(this.form.value["obsType"]),
+        "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
+        "receive_csv": this.form.value["csvBool"] === "Yes",
+      },
+      "requestor":{
+        "email": user?.email || "",
+        "username": user?.user_metadata["username"] || "",
+        "user_id": user?.id || ""
+      },
+    }
+    try{
+      const url = "https://test-backend-astro.irakliskonsoulas.site/"
+      const endpoint = "v1/telescope/observations"
+      const res = await fetch(url + endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reqBody) //! 422 - CANNOT PROCESS (19-01-26)
+      })
+      if(!res.ok){
+        throw new Error(`Response Status: ${res.status}`)
+      }
+      console.log(res.body)
+    } catch(e){
+      console.error(e)
+    }
   }
 
 }

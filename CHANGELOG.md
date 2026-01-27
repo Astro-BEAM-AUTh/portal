@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- insertion marker -->
 
+## [1.0.3](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.0.2...v1.0.3) (2026-01-13)
+
+### Dependencies
+
+* Update to angular v21 ([#13](https://github.com/Astro-BEAM-AUTh/portal/issues/13)) ([9d9dacd](https://github.com/Astro-BEAM-AUTh/portal/commit/9d9dacd4cc3d1975831d69d6acffd7a538185565))
+
 ## [1.0.2](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.0.1...v1.0.2) (2026-01-10)
 
 ### Dependencies
