@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
+import { signal } from '@angular/core';
+import { observationFormDTO, observationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+
 
 @Injectable({
   providedIn: 'root',
@@ -118,6 +121,22 @@ export class ObservationsService {
   bins: pending
   */
 
-  ]
+  ];
 
+  readonly history = signal<observationSubmissionDTO[]>([]);
+
+  // ...existing code... (keep your existing fields config)
+
+  addSubmission(submission: observationSubmissionDTO) {
+    // Add to top of list
+    this.history.update(list => [submission, ...list]);
+  }
+
+  updateSubmissionStatus(submission: observationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
+    // Update specific item completely immutably
+    this.history.update(list => 
+      list.map(item => item === submission ? { ...item, status } : item)
+    );
+  }
+  
 }

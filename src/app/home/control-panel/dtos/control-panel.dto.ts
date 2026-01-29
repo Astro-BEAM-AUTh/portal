@@ -2,11 +2,11 @@ export interface observationBodyDTO {
   "observation": {
     "observation_name": string,
     "center_frequency": number,
-    "rf_gain"?: number,
-    "if_gain"?: number,
-    "bb_gain"?: number,
-    "dec"?: number,
-    "ra"?: number,
+    "rf_gain": number, //optional later
+    "if_gain": number, //optional later
+    "bb_gain": number, //optional later
+    "dec": number, //optional later
+    "ra": number, //optional later
     "bins": number,
     "channels": number,
     "bandwidth": string,

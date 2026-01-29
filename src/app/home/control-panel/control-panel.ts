@@ -9,8 +9,9 @@ import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
 import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
-import { observationBodyDTO, observationFormDTO } from './dtos/control-panel.dto';
+import { observationBodyDTO, observationFormDTO, observationSubmissionDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-control-panel',
@@ -48,8 +49,8 @@ export class ControlPanel {
   // running = false;
 
   async run() {
-    const observation: observationFormDTO = this.form.getRawValue() as unknown as observationFormDTO;
-    observationSubmissionSignal.set({...observation , status: "Pending"});
+    const observation: observationSubmissionDTO = 
+      {...this.form.getRawValue() as unknown as observationFormDTO, status: "Pending"};
 
     const user = this.auth.user();
 
@@ -76,22 +77,24 @@ export class ControlPanel {
         "user_id": user?.id || ""
       },
     }
+    this.ObservationsService.addSubmission(observation);
+
     try{
-      const url = "https://test-backend-astro.irakliskonsoulas.site/"
-      const endpoint = "v1/telescope/observations"
-      const res = await fetch(url + endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reqBody) //! 422 - CANNOT PROCESS (19-01-26)
-      })
+      const res = await fetch(environment.apiUrl, { /* ... */ })
+      
       if(!res.ok){
+        // 2. Update status on failure
+        this.ObservationsService.updateSubmissionStatus(observation, "Failed");
         throw new Error(`Response Status: ${res.status}`)
+      } else {
+        // 2. Update status on success (if needed, or maybe the backend returns final status)
+        // If the backend returns 'Finished', update it here
+         this.ObservationsService.updateSubmissionStatus(observation, "Finished"); 
+         // Or keep as pending if waiting for something else
       }
-      console.log(res.body)
     } catch(e){
-      console.error(e)
+       this.ObservationsService.updateSubmissionStatus(observation, "Failed");
+       console.error(e)
     }
   }
 

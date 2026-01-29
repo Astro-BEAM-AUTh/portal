@@ -6,6 +6,10 @@
         </div>
         <div class="container">
             <div class="content">
+
+                @for(pastSubmission of observationSubmissions(); track pastSubmission){
+                    <div>{{pastSubmission.name}}'s tatus: {{pastSubmission.status}}</div>
+                }
             <!-- 
                 ADD FUNCTIONALITY TO GET STATUS FROM EACH OBSERVATION FROM BACKEND 
                 (Pending -> Place in queue, Denied (if too many reqs, submit appeal?), 

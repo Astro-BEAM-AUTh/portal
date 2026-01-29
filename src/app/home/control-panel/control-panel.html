@@ -7,13 +7,21 @@
         <div class="content">
             <form [formGroup]="form">
                 @for (field of fields; track field) {
-                    @if (field.type == "text"){
+                    @if (field.type == "text" && (field.title != "name" && field.title != "cFreq")){
                         <mat-form-field appearance="outline" style="width: 100%;"
                         [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
                             <mat-label>{{field.alias}}</mat-label>
                             <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off"
                                 #inputElement    
                                 (input)="form.get(field.title)?.setValue(+inputElement.value)">
+                        </mat-form-field>
+                        <p></p>
+                    }
+                    @if (field.title == "name" || field.title == "cFreq"){
+                        <mat-form-field appearance="outline" style="width: 100%;"
+                        [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
+                            <mat-label>{{field.alias}}</mat-label>
+                            <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off">
                         </mat-form-field>
                         <p></p>
                     }
