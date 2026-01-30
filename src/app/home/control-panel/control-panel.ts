@@ -11,7 +11,6 @@ import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
 import { observationBodyDTO, observationFormDTO, observationSubmissionDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
-import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-control-panel',
@@ -80,7 +79,7 @@ export class ControlPanel {
     this.ObservationsService.addSubmission(observation);
 
     try{
-      const res = await fetch(environment.apiUrl, { /* ... */ })
+      const res = await fetch(import.meta.env['NG_APP_API_URL'], { /* ... */ })
       
       if(!res.ok){
         // 2. Update status on failure

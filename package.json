@@ -2,10 +2,9 @@
   "name": "portal",
   "version": "1.0.3",
   "scripts": {
-    "config": "node set-env.js",
     "ng": "ng",
-    "start": "npm run config && ng serve",
-    "build": "npm run config && ng build",
+    "start": "ng serve",
+    "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "github-build": "ng build --configuration production --base-href https://portal.astrobeam.gr/",
     "test": "ng test"
@@ -41,6 +40,7 @@
     "@angular/build": "^21.0.5",
     "@angular/cli": "^21.0.5",
     "@angular/compiler-cli": "^21.0.8",
+    "@ngx-env/builder": "^21.0.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/git": "^10.0.1",
