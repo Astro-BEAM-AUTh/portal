@@ -7,24 +7,46 @@
         <div class="content">
             <form [formGroup]="form">
                 @for (field of fields; track field) {
-                <mat-form-field appearance="outline" style="width: 100%;">
-                    <mat-label>{{field.alias}}</mat-label>
-                    <input matInput [formControlName]="field.title" autocomplete="off">
-                </mat-form-field>
-                <p></p>
+                    @if (field.type == "text" && (field.title != "name" && field.title != "cFreq")){
+                        <mat-form-field appearance="outline" style="width: 100%;"
+                        [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
+                            <mat-label>{{field.alias}}</mat-label>
+                            <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off"
+                                #inputElement    
+                                (input)="form.get(field.title)?.setValue(+inputElement.value)">
+                        </mat-form-field>
+                        <p></p>
+                    }
+                    @if (field.title == "name" || field.title == "cFreq"){
+                        <mat-form-field appearance="outline" style="width: 100%;"
+                        [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
+                            <mat-label>{{field.alias}}</mat-label>
+                            <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off">
+                        </mat-form-field>
+                        <p></p>
+                    }
+                    @if (field.type == "select"){
+                        <mat-form-field appearance="outline" style="width: 100%;">
+                            <mat-label>{{field.alias}}</mat-label>
+                            <mat-select [formControlName]="field.title">
+                                @for (value of field.values; track value){
+                                    <mat-option [value]="value">
+                                        {{value}}
+                                    </mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                    }
                 }
             </form>
         </div>
         <mat-divider></mat-divider>
     </div>
     <div class="footer">
-        <button class="primary-button" style="width: 100%;" (click)="run()" [disabled]="form.invalid || running"
+        <button class="primary-button" style="width: 100%;" (click)="run()" [disabled]="form.invalid"
             mat-raised-button>
-            Start Observation
+            Submit Observation
         </button>
         <p></p>
-        <button class="warn-button" style="width: 100%;" (click)="openCancelDialog()" [disabled]="!running" mat-raised-button>
-            Cancel Observation
-        </button>
     </div>
 </mat-card>
