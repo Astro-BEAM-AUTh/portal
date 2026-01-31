@@ -79,7 +79,10 @@ export class ControlPanel {
     this.ObservationsService.addSubmission(observation);
 
     try{
-      const res = await fetch(import.meta.env['NG_APP_API_URL'], { /* ... */ })
+      const res = await fetch(import.meta.env['NG_APP_API_URL'],  {
+        method: "POST",
+        body: JSON.stringify(reqBody),
+      })
       
       if(!res.ok){
         // 2. Update status on failure
