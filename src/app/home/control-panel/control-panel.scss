@@ -29,4 +29,8 @@
         padding: 1rem;
     }
 
+    .invalid {
+        --mdc-theme-primary: #f44336 !important; /* Red */
+    }
+
 }
