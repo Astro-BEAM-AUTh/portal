@@ -83,6 +83,7 @@ export class ControlPanel {
       const res = await fetch(import.meta.env['NG_APP_API_URL'],  {
         method: "POST",
         headers: {
+          'Content-Type': 'application/json', 
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify(reqBody),
