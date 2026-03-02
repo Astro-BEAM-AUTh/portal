@@ -123,20 +123,32 @@ export class ObservationsService {
 
   ];
 
-  readonly history = signal<observationSubmissionDTO[]>([]);
+  readonly history = signal<observationSubmissionDTO[] | []>([]);
 
   // ...existing code... (keep your existing fields config)
 
   addSubmission(submission: observationSubmissionDTO) {
     // Add to top of list
-    this.history.update(list => [submission, ...list]);
+    this.history.update(list => [submission, ...(list as observationSubmissionDTO[])]);
   }
 
   updateSubmissionStatus(submission: observationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
     // Update specific item completely immutably
-    this.history.update(list => 
-      list.map(item => item === submission ? { ...item, status } : item)
+    this.history.update(hist => 
+      (hist as observationSubmissionDTO[]).map(obs => {
+        // Remove status and message from both objects for comparison
+        const { status: obsStatus, message: obsMessage, ...obsRest } = obs;
+        const { status: subStatus, message: subMessage, ...subRest } = submission;
+        if(JSON.stringify(obsRest) === JSON.stringify(subRest)){
+          obs.status = status
+        }
+        return obs }
+      )
     );
+  }
+
+  deleteHistoryInstance(){
+    this.history.update(()=>{return []})
   }
   
 }
