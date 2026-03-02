@@ -14,6 +14,7 @@ export interface observationBodyDTO {
     "observation_type": string,
     "output_filename": string,
     "receive_csv": boolean,
+    "preferred_email": string,
   },
   "requestor": {
     "email": string,
@@ -36,6 +37,7 @@ export interface observationFormDTO{
       dec: Number | String,
       duration: Number | String,
       csvBool: Boolean | String,
+      preferredEmail: String
 }
 
 export interface observationSubmissionDTO extends observationFormDTO{

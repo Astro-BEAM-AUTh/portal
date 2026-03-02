@@ -38,4 +38,3 @@ body {
   @include mat.theme((color: mat.$red-palette));
   @include mat.button-overrides((outlined-container-shape: 5px));
 }
-

@@ -30,4 +30,12 @@ export class App {
     this.router.navigateByUrl('/login');
   }
 
+  login(){
+    this.router.navigateByUrl('/login')
+  }
+
+  register(){
+    this.router.navigateByUrl('/register')
+  }
+
 }
