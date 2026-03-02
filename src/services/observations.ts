@@ -11,20 +11,25 @@ import { inject } from '@angular/core/primitives/di';
 
 export class ObservationsService {
   private auth = inject(AuthService)
+  private loaded = false;
 
   constructor(){
     this.auth.supabase.auth.onAuthStateChange((event, session)=>{
       if (event === 'SIGNED_IN') {
-      this.handleState();
-    }
-    if (event === 'SIGNED_OUT') {
-      this.deleteHistoryInstance();
-    }
+        if(!this.loaded){
+          this.handleState();
+        }
+        this.loaded = true;
+      }
+      if (event === 'SIGNED_OUT') {
+        this.deleteHistoryInstance();
+        this.loaded = false;
+      }
     })
 
     // Only fetch if user is present and no data loaded yet
     const user = this.auth.user();
-    if (user) {
+    if (user && !this.loaded && (!this.history() || this.history().length === 0)) {
       this.handleState();
     }
   }
@@ -181,6 +186,7 @@ export class ObservationsService {
       console.error(error);
     } else {
       // data contains all observations for this user
+      this.loaded = true;
       data.forEach(obs => {
         this.addSubmission(obs)
       });
