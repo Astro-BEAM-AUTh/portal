@@ -26,52 +26,6 @@ export class ObservationHistory {
   private authSubscription: any;
 
   constructor(){
-    // A) On page load, check for existing session
-    const user = this.auth.user();
-    if (user) {
-      this.handleState();
-    }
   }
 
-  ngOnInit() {
-    // B) Listen for new logins
-    this.authSubscription = this.auth.supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') {
-        this.handleState();
-      }
-      if (event === 'SIGNED_OUT') {
-        this.deleteState();
-      }
-    }).data.subscription;
-  }
-
-  ngOnDestroy(){
-    if (this.authSubscription) {
-      this.authSubscription.unsubscribe();
-    }
-    this.deleteState()
-  }
-
-  // Directly reference the service signal
-  async handleState(){
-    const email = this.auth.user()?.email
-    const {data, error} = await this.auth.supabase
-    .from('observations')
-    .select('*')
-    .eq('email', email)
-
-    if (error) {
-      console.error(error);
-    } else {
-      // data contains all observations for this user
-      data.forEach(obs => {
-        this.obsService.addSubmission(obs)
-      });
-    }
-  }
-
-  async deleteState(){
-    this.obsService.deleteHistoryInstance()
-  }
-  
 }

@@ -1,14 +1,33 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { signal } from '@angular/core';
 import { observationFormDTO, observationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
-
+import { AuthService } from './auth';
+import { inject } from '@angular/core/primitives/di';
 
 @Injectable({
   providedIn: 'root',
 })
 
 export class ObservationsService {
+  private auth = inject(AuthService)
+
+  constructor(){
+    this.auth.supabase.auth.onAuthStateChange((event, session)=>{
+      if (event === 'SIGNED_IN') {
+      this.handleState();
+    }
+    if (event === 'SIGNED_OUT') {
+      this.deleteHistoryInstance();
+    }
+    })
+
+    // Only fetch if user is present and no data loaded yet
+    const user = this.auth.user();
+    if (user) {
+      this.handleState();
+    }
+  }
 
   observation_fields = [
     {
@@ -149,6 +168,23 @@ export class ObservationsService {
 
   deleteHistoryInstance(){
     this.history.update(()=>{return []})
+  }
+
+  async handleState(){
+    const email = this.auth.user()?.email
+    const {data, error} = await this.auth.supabase
+    .from('observations')
+    .select('*')
+    .eq('email', email)
+
+    if (error) {
+      console.error(error);
+    } else {
+      // data contains all observations for this user
+      data.forEach(obs => {
+        this.addSubmission(obs)
+      });
+    }
   }
   
 }
