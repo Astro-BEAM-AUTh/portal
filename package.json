@@ -31,7 +31,7 @@
     "@angular/material": "^21.1.5",
     "@angular/platform-browser": "^21.1.5",
     "@angular/router": "^21.1.5",
-    "@supabase/supabase-js": "^2.97.0",
+    "@supabase/supabase-js": "^2.98.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.16.0"
@@ -47,7 +47,7 @@
     "@semantic-release/github": "^12.0.6",
     "@semantic-release/release-notes-generator": "^14.0.1",
     "@types/jasmine": "~6.0.0",
-    "conventional-changelog-conventionalcommits": "^9.1.0",
+    "conventional-changelog-conventionalcommits": "^9.2.0",
     "dotenv": "^17.3.1",
     "jasmine-core": "~6.1.0",
     "karma": "~6.4.0",
