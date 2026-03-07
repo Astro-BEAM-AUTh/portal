@@ -48,7 +48,7 @@ export class ControlPanel {
   // running = false;
 
   async run() {
-    const observation: observationSubmissionDTO = 
+    const observation: observationFormDTO | {status: string} = 
       {...this.form.getRawValue() as unknown as observationFormDTO, status: "Pending"};
 
     const user = this.auth.user();
@@ -77,30 +77,54 @@ export class ControlPanel {
         "user_id": user?.id || ""
       },
     }
-    this.ObservationsService.addSubmission(observation);
+    this.ObservationsService.addSubmission(
+      {...reqBody.observation, 
+        ...reqBody.requestor, 
+        "status": "Pending", "message": ""
+      }
+    );
+
+    const {data, error} = await this.auth.supabase.from('observations')
+    .insert([{...reqBody.observation, ...reqBody.requestor}]) //remember to create corresponding_table
+    .select() //return uuid
+    if(error){
+      console.error(error)
+    }
+    const id = (data as any)[0].id
 
     try{
-      const res = await fetch(import.meta.env['NG_APP_API_URL'],  {
-        method: "POST",
+      const res = await fetch(import.meta.env['NG_APP_API_URL'], {
+        method: 'POST',
         headers: {
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${session?.access_token}`
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(reqBody),
-      })
+      });
       
       if(!res.ok){
         // 2. Update status on failure
-        this.ObservationsService.updateSubmissionStatus(observation, "Failed");
+        this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
+        await this.auth.supabase
+        .from('observations')
+        .update({status: "Failed", message: `${res.status}`})
+        .eq('id', id)
         throw new Error(`Response Status: ${res.status}`)
       } else {
         // 2. Update status on success (if needed, or maybe the backend returns final status)
         // If the backend returns 'Finished', update it here
-         this.ObservationsService.updateSubmissionStatus(observation, "Finished"); 
+         this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Finished"); 
+         await this.auth.supabase
+        .from('observations')
+        .update({status: "Finished"})
+        .eq('id', id)
          // Or keep as pending if waiting for something else
       }
     } catch(e){
-       this.ObservationsService.updateSubmissionStatus(observation, "Failed");
+       this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
+       await this.auth.supabase
+        .from('observations')
+        .update({status: "Failed"})
+        .eq('id', id)
        console.error(e)
     }
   }

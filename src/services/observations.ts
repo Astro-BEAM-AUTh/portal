@@ -1,14 +1,38 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { signal } from '@angular/core';
 import { observationFormDTO, observationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
-
+import { AuthService } from './auth';
+import { inject } from '@angular/core/primitives/di';
 
 @Injectable({
   providedIn: 'root',
 })
 
 export class ObservationsService {
+  private auth = inject(AuthService)
+  private loaded = false;
+
+  constructor(){
+    this.auth.supabase.auth.onAuthStateChange((event, session)=>{
+      if (event === 'SIGNED_IN') {
+        if(!this.loaded){
+          this.handleState();
+        }
+        this.loaded = true;
+      }
+      if (event === 'SIGNED_OUT') {
+        this.deleteHistoryInstance();
+        this.loaded = false;
+      }
+    })
+
+    // Only fetch if user is present and no data loaded yet
+    const user = this.auth.user();
+    if (user && !this.loaded && (!this.history() || this.history().length === 0)) {
+      this.handleState();
+    }
+  }
 
   observation_fields = [
     {
@@ -123,20 +147,50 @@ export class ObservationsService {
 
   ];
 
-  readonly history = signal<observationSubmissionDTO[]>([]);
+  readonly history = signal<observationSubmissionDTO[] | []>([]);
 
   // ...existing code... (keep your existing fields config)
 
   addSubmission(submission: observationSubmissionDTO) {
     // Add to top of list
-    this.history.update(list => [submission, ...list]);
+    this.history.update(list => [submission, ...(list as observationSubmissionDTO[])]);
   }
 
   updateSubmissionStatus(submission: observationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
     // Update specific item completely immutably
-    this.history.update(list => 
-      list.map(item => item === submission ? { ...item, status } : item)
+    this.history.update(hist => 
+      (hist as observationSubmissionDTO[]).map(obs => {
+        // Remove status and message from both objects for comparison
+        const { status: obsStatus, message: obsMessage, ...obsRest } = obs;
+        const { status: subStatus, message: subMessage, ...subRest } = submission;
+        if(JSON.stringify(obsRest) === JSON.stringify(subRest)){
+          obs.status = status
+        }
+        return obs }
+      )
     );
+  }
+
+  deleteHistoryInstance(){
+    this.history.update(()=>{return []})
+  }
+
+  async handleState(){
+    const email = this.auth.user()?.email
+    const {data, error} = await this.auth.supabase
+    .from('observations')
+    .select('*')
+    .eq('email', email)
+
+    if (error) {
+      console.error(error);
+    } else {
+      // data contains all observations for this user
+      this.loaded = true;
+      data.forEach(obs => {
+        this.addSubmission(obs)
+      });
+    }
   }
   
 }
