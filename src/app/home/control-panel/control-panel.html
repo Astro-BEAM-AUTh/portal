@@ -5,7 +5,7 @@
     </div>
     <div class="container">
         <div class="content">
-            <form [formGroup]="form">
+            <form [formGroup]="form" [id]="form">
                 @for (field of fields; track field) {
                     @if (field.type == "text" && (field.title != "name" && field.title != "cFreq")){
                         <mat-form-field appearance="outline" style="width: 100%;"

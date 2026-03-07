@@ -54,6 +54,14 @@ export class AuthService {
     }
   }
 
+  Register(email: string, password: string){
+    return this.supabase.auth.signUp({ email, password })
+  }
+
+  getAccessToken(): string | null {
+    const session = this.sessionSig();
+    return session?.access_token ?? null;
+  }
 }
 
 

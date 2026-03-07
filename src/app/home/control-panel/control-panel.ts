@@ -7,6 +7,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
+import { CloseScrollStrategy, Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
 import { observationBodyDTO, observationFormDTO, observationSubmissionDTO } from './dtos/control-panel.dto';
@@ -25,6 +27,13 @@ import { AuthService } from '../../../services/auth';
   ],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
+  providers: [
+    {
+      provide: MAT_SELECT_SCROLL_STRATEGY,
+      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.noop(),
+      deps: [Overlay],
+    },
+  ],
 })
 
 export class ControlPanel {
@@ -70,6 +79,7 @@ export class ControlPanel {
         "observation_type": String(this.form.value["obsType"]),
         "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
         "receive_csv": this.form.value["csvBool"] === "Yes",
+        "preferred_email": String(this.form.value["preferredEmail"])
       },
       "requestor":{
         "email": user?.email || "",

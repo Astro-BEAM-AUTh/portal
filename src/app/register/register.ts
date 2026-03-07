@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { MatCardModule } from '@angular/material/card';
@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-register',
   imports: [
     ReactiveFormsModule,
     MatCardModule,
@@ -20,33 +20,41 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
     MatInputModule
 ],
-  templateUrl: './login.html',
-  styleUrl: './login.scss',
+  templateUrl: './register.html',
+  styleUrl: './register.scss',
 })
 
-export class Login {
+export class Register {
 
   hide = true
   loading = false
   private snackBar = inject(MatSnackBar);
 
   private fb = inject(FormBuilder);
+
+  passwordsMatchValidator(formGroup: FormGroup) {
+    const password = formGroup.get('password')?.value;
+    const confirmPassword = formGroup.get('confirmPassword')?.value;
+    return password === confirmPassword ? null : { passwordsMismatch: true };
+  }
+
   form = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
-  });
+    password: ['', [Validators.required, Validators.minLength(8), Validators.pattern("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).+$")]],
+    confirmPassword: ['', Validators.required]
+  }, { validators: this.passwordsMatchValidator });
 
   private auth = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
-  async emailLogin() {
+  async emailRegister() {
     this.loading = true
     var email = this.form.value.email;
     if (!email) { email = '' }
     var password = this.form.value.password;
     if (!password) { password = '' }
-    const { error } = await this.auth.signInEmail(email, password);
+    const { error } = await this.auth.Register(email, password);
     if (error) {
       this.snackBar.open(error.message, "Close", {
         duration: 3000,
@@ -65,7 +73,7 @@ export class Login {
   }
 
   private done() {
-    const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') || '/';
+    const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') || '';
     this.router.navigateByUrl(redirectTo);
   }
 

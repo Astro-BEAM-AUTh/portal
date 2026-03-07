@@ -131,6 +131,13 @@ export class ObservationsService {
       values: ["Yes", "No"],
       validators: [Validators.required]
     },
+    {
+      title: 'prefEmail',
+      alias: 'Preferred Email',
+      type: 'text',
+      defaultValue: "",
+      validators: [Validators.required, Validators.email]
+    },
 
   /*
   observation object is assigned at runtime
