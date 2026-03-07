@@ -27,6 +27,8 @@
                 <p></p>
                 <button class="primary-button" style="width: 100%;" (click)="emailRegister()" [disabled]="form.invalid || loading"
                     mat-raised-button>Register</button>
+                <button class="primary-button" style="width: 100%; margin-top: 1vh;" (click)="guestLogin()"
+                    mat-raised-button>Return to Home</button>
             </form>
         </mat-card-actions>
     </mat-card>

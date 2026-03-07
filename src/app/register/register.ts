@@ -68,6 +68,10 @@ export class Register {
     this.loading = false
   }
 
+  guestLogin(){
+    this.done()
+  }
+
   private done() {
     const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') || '';
     this.router.navigateByUrl(redirectTo);

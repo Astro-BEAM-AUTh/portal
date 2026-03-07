@@ -23,6 +23,8 @@
                 <p></p>
                 <button class="primary-button" style="width: 100%;" (click)="emailLogin()" [disabled]="form.invalid || loading"
                     mat-raised-button>Login</button>
+                <button class="primary-button" style="width: 100%; margin-top: 1vh;" (click)="guestLogin()"
+                    mat-raised-button>Continue as Guest</button>
             </form>
         </mat-card-actions>
     </mat-card>

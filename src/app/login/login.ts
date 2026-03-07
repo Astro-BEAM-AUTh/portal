@@ -60,8 +60,12 @@ export class Login {
     this.loading = false
   }
 
+  guestLogin(){
+    this.done()
+  }
+
   private done() {
-    const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') || '/home';
+    const redirectTo = this.route.snapshot.queryParamMap.get('redirectTo') || '/';
     this.router.navigateByUrl(redirectTo);
   }
 
