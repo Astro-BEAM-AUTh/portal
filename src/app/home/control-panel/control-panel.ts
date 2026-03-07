@@ -76,10 +76,10 @@ export class ControlPanel {
         "channels": Number(this.form.value["channels"]),
         "bandwidth": String(this.form.value["bandwidth"]),
         "integration_time": Number(this.form.value["duration"]),
-        "observation_type": String(this.form.value["obsType"]),
+        "observation_type": String(this.form.value["observationType"]),
         "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
         "receive_csv": this.form.value["csvBool"] === "Yes",
-        "preferred_email": String(this.form.value["preferredEmail"])
+        "preferred_email": String(this.form.value["prefEmail"])
       },
       "requestor":{
         "email": user?.email || "",
