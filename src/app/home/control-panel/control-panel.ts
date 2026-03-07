@@ -52,6 +52,7 @@ export class ControlPanel {
       {...this.form.getRawValue() as unknown as observationFormDTO, status: "Pending"};
 
     const user = this.auth.user();
+    const session = this.auth.session();
 
     const reqBody: observationBodyDTO = {
       "observation": {
@@ -81,6 +82,10 @@ export class ControlPanel {
     try{
       const res = await fetch(import.meta.env['NG_APP_API_URL'],  {
         method: "POST",
+        headers: {
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${session?.access_token}`
+        },
         body: JSON.stringify(reqBody),
       })
       
