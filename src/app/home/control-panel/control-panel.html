@@ -5,9 +5,9 @@
     </div>
     <div class="container">
         <div class="content">
-            <form [formGroup]="form">
+            <form [formGroup]="form" [id]="form">
                 @for (field of fields; track field) {
-                    @if (field.type == "text" && (field.title != "name" && field.title != "cFreq")){
+                    @if (field.type == "text" && (field.title != "name" && field.title != "cFreq" && field.title != "prefEmail")){
                         <mat-form-field appearance="outline" style="width: 100%;"
                         [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
                             <mat-label>{{field.alias}}</mat-label>
@@ -17,11 +17,15 @@
                         </mat-form-field>
                         <p></p>
                     }
-                    @if (field.title == "name" || field.title == "cFreq"){
+                    @if (field.title == "name" || field.title == "cFreq" || field.title == "prefEmail"){
                         <mat-form-field appearance="outline" style="width: 100%;"
                         [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
                             <mat-label>{{field.alias}}</mat-label>
-                            <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off">
+                            @if(field.title != "prefEmail"){
+                                <input matInput [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off">
+                            } @else {
+                                <input matInput type="email" [formControlName]="field.title" [placeholder]="field?.placeholder!" autocomplete="off">
+                            }
                         </mat-form-field>
                         <p></p>
                     }
@@ -40,13 +44,12 @@
                 }
             </form>
         </div>
-        <mat-divider></mat-divider>
     </div>
+    <mat-divider style="padding-block: 0.5vh;"></mat-divider>
     <div class="footer">
         <button class="primary-button" style="width: 100%;" (click)="run()" [disabled]="form.invalid"
             mat-raised-button>
             Submit Observation
         </button>
-        <p></p>
     </div>
 </mat-card>

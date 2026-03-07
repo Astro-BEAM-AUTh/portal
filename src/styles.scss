@@ -1,5 +1,6 @@
 @use '@angular/material' as mat;
 @include mat.core();
+@import '~/../@fortawesome/fontawesome-free/css/all.css';
 
 $primary-color: rgb(255, 208, 0);
 $warn-color: rgb(231, 90, 90);
@@ -38,4 +39,3 @@ body {
   @include mat.theme((color: mat.$red-palette));
   @include mat.button-overrides((outlined-container-shape: 5px));
 }
-

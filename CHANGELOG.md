@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- insertion marker -->
 
+## [1.1.0](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.0.3...v1.1.0) (2026-01-31)
+
+### Features
+
+* Finalize form creation ([faedf21](https://github.com/Astro-BEAM-AUTh/portal/commit/faedf2104ee8ac05f91d02fc354a3b5846828fe3))
+* finalized status, added .env support ([96b01ef](https://github.com/Astro-BEAM-AUTh/portal/commit/96b01ef7c1592f770ff07347491624fa8d2c637b))
+* migrated to ngx-env ([46ec94b](https://github.com/Astro-BEAM-AUTh/portal/commit/46ec94b6fc103b4701e77bee10f7178dfed6d50b))
+
+### Dependencies
+
+* bump the angular-dependencies group across 1 directory with 10 updates ([da98598](https://github.com/Astro-BEAM-AUTh/portal/commit/da98598192757a30a62aff8a61661f7587d2151d))
+* bump the npm-dependencies group across 1 directory with 4 updates ([98f9efe](https://github.com/Astro-BEAM-AUTh/portal/commit/98f9efec28dc41e40c69af745891291e32838675))
+* ran npm audit fix ([768d83b](https://github.com/Astro-BEAM-AUTh/portal/commit/768d83bbbb1c192d9217d89998ad0f103b09f8ce))
+
 ## [1.0.3](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.0.2...v1.0.3) (2026-01-13)
 
 ### Dependencies

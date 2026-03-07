@@ -7,6 +7,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
+import { CloseScrollStrategy, Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
 import { observationBodyDTO, observationFormDTO, observationSubmissionDTO } from './dtos/control-panel.dto';
@@ -25,6 +27,13 @@ import { AuthService } from '../../../services/auth';
   ],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
+  providers: [
+    {
+      provide: MAT_SELECT_SCROLL_STRATEGY,
+      useFactory: (overlay: Overlay) => () => overlay.scrollStrategies.noop(),
+      deps: [Overlay],
+    },
+  ],
 })
 
 export class ControlPanel {
@@ -48,10 +57,11 @@ export class ControlPanel {
   // running = false;
 
   async run() {
-    const observation: observationSubmissionDTO = 
+    const observation: observationFormDTO | {status: string} = 
       {...this.form.getRawValue() as unknown as observationFormDTO, status: "Pending"};
 
     const user = this.auth.user();
+    const session = this.auth.session();
 
     const reqBody: observationBodyDTO = {
       "observation": {
@@ -66,9 +76,10 @@ export class ControlPanel {
         "channels": Number(this.form.value["channels"]),
         "bandwidth": String(this.form.value["bandwidth"]),
         "integration_time": Number(this.form.value["duration"]),
-        "observation_type": String(this.form.value["obsType"]),
+        "observation_type": String(this.form.value["observationType"]),
         "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
         "receive_csv": this.form.value["csvBool"] === "Yes",
+        "preferred_email": String(this.form.value["prefEmail"])
       },
       "requestor":{
         "email": user?.email || "",
@@ -76,26 +87,55 @@ export class ControlPanel {
         "user_id": user?.id || ""
       },
     }
-    this.ObservationsService.addSubmission(observation);
+    this.ObservationsService.addSubmission(
+      {...reqBody.observation, 
+        ...reqBody.requestor, 
+        "status": "Pending", "message": ""
+      }
+    );
+
+    const {data, error} = await this.auth.supabase.from('observations')
+    .insert([{...reqBody.observation, ...reqBody.requestor}]) //remember to create corresponding_table
+    .select() //return uuid
+    if(error){
+      console.error(error)
+    }
+    const id = (data as any)[0].id
 
     try{
-      const res = await fetch(import.meta.env['NG_APP_API_URL'],  {
-        method: "POST",
+      const res = await fetch(import.meta.env['NG_APP_API_URL'], {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}` 
+        },
         body: JSON.stringify(reqBody),
-      })
+      });
       
       if(!res.ok){
         // 2. Update status on failure
-        this.ObservationsService.updateSubmissionStatus(observation, "Failed");
+        this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
+        await this.auth.supabase
+        .from('observations')
+        .update({status: "Failed", message: `${res.status}`})
+        .eq('id', id)
         throw new Error(`Response Status: ${res.status}`)
       } else {
         // 2. Update status on success (if needed, or maybe the backend returns final status)
         // If the backend returns 'Finished', update it here
-         this.ObservationsService.updateSubmissionStatus(observation, "Finished"); 
+         this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Finished"); 
+         await this.auth.supabase
+        .from('observations')
+        .update({status: "Finished"})
+        .eq('id', id)
          // Or keep as pending if waiting for something else
       }
     } catch(e){
-       this.ObservationsService.updateSubmissionStatus(observation, "Failed");
+       this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
+       await this.auth.supabase
+        .from('observations')
+        .update({status: "Failed"})
+        .eq('id', id)
        console.error(e)
     }
   }
