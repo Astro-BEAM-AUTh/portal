@@ -63,21 +63,13 @@ export class ControlPanel {
   // running = false;
 
   async run() {
-    const observation: observationFormDTO | privilegedObservationFormDTO | {status: string}  = 
-      {...this.form.getRawValue() as unknown as observationFormDTO, status: "Pending"};
 
     const user = this.auth.user();
     const session = this.auth.session();
 
-    const reqBody: observationBodyDTO | privilegedObservationBodyDTO = {
-      "observation": {
+    let observationData: any = {
         "observation_name": String(this.form.value["name"]),
         "center_frequency": Number(this.form.value["cFreq"]),
-        "rf_gain": Number(this.form.value["rfGain"]),
-        "if_gain": Number(this.form.value["ifGain"]),
-        "bb_gain": Number(this.form.value["bbGain"]),
-        "dec": Number(this.form.value["dec"]),
-        "ra": Number(this.form.value["ra"]),
         "bins": Number(this.form.value["bins"]),
         "channels": Number(this.form.value["channels"]),
         "bandwidth": String(this.form.value["bandwidth"]),
@@ -86,12 +78,30 @@ export class ControlPanel {
         "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
         "receive_csv": this.form.value["csvBool"] === "Yes",
         "preferred_email": String(this.form.value["prefEmail"])
-      },
-      "requestor":{
+      }
+    
+    let requestor = null
+    if(user){
+      requestor = {
         "email": user?.email || "",
         "username": user?.user_metadata["username"] || "",
         "user_id": user?.id || ""
-      },
+      }
+    }
+
+    if(await this.auth.isPrivileged()){
+      observationData = { ...observationData,
+        "rf_gain": Number(this.form.value["rfGain"]),
+        "if_gain": Number(this.form.value["ifGain"]),
+        "bb_gain": Number(this.form.value["bbGain"]),
+        "dec": Number(this.form.value["dec"]),
+        "ra": Number(this.form.value["ra"]),
+      }
+    }
+
+    const reqBody: observationBodyDTO | privilegedObservationBodyDTO = {
+      "observation": observationData,
+      "requestor": requestor,
     }
     this.ObservationsService.addSubmission(
       {...reqBody.observation, 

@@ -26,7 +26,7 @@ export interface observationBodyDTO {
     "email": string,
     "user_id": string,
     "username": string
-  }
+  } | null
 }
 
 export interface privilegedObservationBodyDTO {
@@ -35,7 +35,7 @@ export interface privilegedObservationBodyDTO {
     "email": string,
     "user_id": string,
     "username": string
-  }
+  } | null
 }
 
 export interface observationSubmissionDTO {
@@ -48,9 +48,9 @@ export interface observationSubmissionDTO {
     "observation_type": string,
     "output_filename": string,
     "receive_csv": boolean,
-    "email": string,
-    "user_id": string,
-    "username": string,
+    "email"?: string,
+    "user_id"?: string,
+    "username"?: string,
     "status": string,
     "message": string
 }

@@ -84,35 +84,30 @@ export class ObservationsService {
       title: 'rfGain',
       alias: 'RF Gain',
       type: 'text',
-      defaultValue: 20,
       validators: [Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ifGain',
       alias: 'IF Gain',
       type: 'text',
-      defaultValue: 10,
       validators: [Validators.min(0), Validators.max(30)]
     },
     {
       title: 'bbGain',
       alias: 'BB Gain',
       type: 'text',
-      defaultValue: 10,
       validators: [Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ra',
       alias: 'RA',
       type: 'text',
-      defaultValue: 10,
       validators: [Validators.min(0), Validators.max(359)]
     },
     {
       title: 'dec',
       alias: 'DEC',
       type: 'text',
-      defaultValue: 10,
       validators: [Validators.min(0), Validators.max(90)]
     },
     {
