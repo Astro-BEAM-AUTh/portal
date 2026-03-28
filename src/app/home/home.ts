@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { FormGroup, Form } from '@angular/forms';
 import { ControlPanel } from "./control-panel/control-panel";
 import { ObservationHistory } from "./observation-history/observation-history";
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-home',
@@ -49,8 +50,10 @@ export class Home {
   ]
 
   private fb = inject(FormBuilder);
+  private auth = inject(AuthService)
   form;
   running = false
+  user: any;
 
   constructor() {
     let controls: any = {}
@@ -58,6 +61,14 @@ export class Home {
       controls[field.title] = [field.defaultValue, field.validators]
     }
     this.form = this.fb.group(controls)
+  }
+
+  async ngOnInit(){
+    while (!this.auth.sessionLoaded()) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    this.user = this.auth.user();
+    console.log(this.user)
   }
 
 

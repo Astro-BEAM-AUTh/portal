@@ -22,8 +22,6 @@ import { Subscription, SubscriptionLike } from 'rxjs';
 export class ObservationHistory {
   private obsService = inject(ObservationsService);
   observationSubmissions = this.obsService.history;
-  private auth = inject(AuthService)
-  private authSubscription: any;
 
   constructor(){
   }

@@ -7,7 +7,8 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select'
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonModule } from '@angular/material/button'
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
 import { CloseScrollStrategy, Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
@@ -25,6 +26,7 @@ import { AuthService } from '../../../services/auth';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatSnackBarModule
   ],
   templateUrl: './control-panel.html',
   styleUrl: './control-panel.scss',
@@ -42,6 +44,7 @@ export class ControlPanel {
   private ObservationsService = inject(ObservationsService);
   private fb = inject(FormBuilder);
   public auth = inject(AuthService);
+  private snackBar = inject(MatSnackBar)
 
   public privilegedFieldNames = [
     "rfGain", "ifGain", "bbGain", "ra", "dec"
@@ -59,8 +62,6 @@ export class ControlPanel {
     }
     this.form = this.fb.group(controls)
   }
-
-  // running = false;
 
   async run() {
 
@@ -110,13 +111,16 @@ export class ControlPanel {
       }
     );
 
-    const {data, error} = await this.auth.supabase.from('observations')
-    .insert([{...reqBody.observation, ...reqBody.requestor}]) //remember to create corresponding_table
-    .select() //return uuid
-    if(error){
-      console.error(error)
+    let id;
+    if(user){
+      const {data, error} = await this.auth.supabase.from('observations')
+      .insert([{...reqBody.observation, ...reqBody.requestor}]) //remember to create corresponding_table
+      .select() //return uuid
+      if(error){
+        console.error(error)
+      }
+      id = (data as any)[0].id
     }
-    const id = (data as any)[0].id
 
     try{
       const res = await fetch(import.meta.env['NG_APP_API_URL'], {
@@ -128,31 +132,57 @@ export class ControlPanel {
         body: JSON.stringify(reqBody),
       });
       
-      if(!res.ok){
-        // 2. Update status on failure
+      if(user){ //with user
+        if(!res.ok){ //not okay res
+          // Update status on failure
+          this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
+          await this.auth.supabase
+          .from('observations')
+          .update({status: "Failed", message: `${res.status}`})
+          .eq('id', id)
+          throw new Error(`Response Status: ${res.status}`)
+        } else { //ok res with user
+          // Update status on success (if needed, or maybe the backend returns final status)
+          // If the backend returns 'Finished', update it here
+          this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Finished"); 
+          await this.auth.supabase
+          .from('observations')
+          .update({status: "Finished"})
+          .eq('id', id)
+        }
+      } else { // no user
+        if(!res.ok){ //not okay res
+          this.snackBar.open(`Request Failed: ${res.status}`, 'Close', {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['error-snackbar']
+          });
+        } else { //okay res
+          this.snackBar.open('Observation Submitted Successfully.', 'Close', {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['success-snackbar']
+          });
+        }
+      }
+    } catch(e){ // error handling
+      if(user){ //with user
         this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
         await this.auth.supabase
         .from('observations')
-        .update({status: "Failed", message: `${res.status}`})
-        .eq('id', id)
-        throw new Error(`Response Status: ${res.status}`)
-      } else {
-        // 2. Update status on success (if needed, or maybe the backend returns final status)
-        // If the backend returns 'Finished', update it here
-         this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Finished"); 
-         await this.auth.supabase
-        .from('observations')
-        .update({status: "Finished"})
-        .eq('id', id)
-         // Or keep as pending if waiting for something else
-      }
-    } catch(e){
-       this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
-       await this.auth.supabase
-        .from('observations')
         .update({status: "Failed"})
         .eq('id', id)
-       console.error(e)
+        console.error(e)
+      } else { //without
+        this.snackBar.open(`Error Submitting Request.`, 'Close', {
+            duration: 5000,
+            horizontalPosition: 'center',
+            verticalPosition: 'bottom',
+            panelClass: ['error-snackbar']
+          });
+      }
     }
   }
 

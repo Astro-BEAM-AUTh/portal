@@ -76,13 +76,11 @@ export class AuthService {
       .eq('id', userId)
       .single();
 
-    console.log(data?.role)
     return data?.role; // 'user' | 'privileged' | 'admin'
   }
 
   getCurrentUserId(){
     const user = this.user();
-    console.log(user?.id)
     return user?.id ?? null;
   }
 
