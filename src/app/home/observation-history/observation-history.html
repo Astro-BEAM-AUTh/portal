@@ -35,16 +35,18 @@
                                 </mat-panel-title>
                             </mat-expansion-panel-header>
                             <div>
+                                <div><strong>Observation Type:</strong> {{pastSubmission.observation_type}}</div>
                                 <div><strong>Center Frequency:</strong> {{pastSubmission.center_frequency}}</div>
                                 <div><strong>Bandwidth:</strong> {{pastSubmission.bandwidth}}</div>
                                 <div><strong>Channels:</strong> {{pastSubmission.channels}}</div>
                                 <div><strong>Bins:</strong> {{pastSubmission.bins}}</div>
-                                <div><strong>RF Gain:</strong> {{pastSubmission.rf_gain}}</div>
-                                <div><strong>IF Gain:</strong> {{pastSubmission.if_gain}}</div>
-                                <div><strong>Observation Type:</strong> {{pastSubmission.observation_type}}</div>
-                                <div><strong>RA:</strong> {{pastSubmission.ra}}</div>
-                                <div><strong>DEC:</strong> {{pastSubmission.dec}}</div>
-                                <div><strong>BB Gain:</strong> {{pastSubmission.bb_gain}}</div>
+                                @if(isPrivilegedSubmission(pastSubmission)){
+                                    <div><strong>RF Gain:</strong> {{pastSubmission.rf_gain}}</div>
+                                    <div><strong>IF Gain:</strong> {{pastSubmission.if_gain}}</div>
+                                    <div><strong>BB Gain:</strong> {{pastSubmission.bb_gain}}</div>
+                                    <div><strong>RA:</strong> {{pastSubmission.ra}}</div>
+                                    <div><strong>DEC:</strong> {{pastSubmission.dec}}</div>
+                                }
                                 <div><strong>Duration:</strong> {{pastSubmission.integration_time}}s</div>
                                 <div><strong>CSV Output:</strong> {{pastSubmission.receive_csv}}</div>
                             </div>

@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { formatDate } from '@angular/common';
+import { Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -11,7 +12,7 @@ import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
 import { CloseScrollStrategy, Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
 import { observationSubmissionSignal } from '../../../services/signal'
-import { observationBodyDTO, observationFormDTO, observationSubmissionDTO } from './dtos/control-panel.dto';
+import { observationBodyDTO, observationFormDTO, observationSubmissionDTO, privilegedObservationBodyDTO, privilegedObservationFormDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -40,10 +41,15 @@ export class ControlPanel {
 
   private ObservationsService = inject(ObservationsService);
   private fb = inject(FormBuilder);
-  private auth = inject(AuthService);
+  public auth = inject(AuthService);
 
-  fields;
-  form;
+  public privilegedFieldNames = [
+    "rfGain", "ifGain", "bbGain", "ra", "dec"
+  ]
+  public visibleFields: any[] = [];
+
+  public fields;
+  public form;
 
   constructor() {
     this.fields = this.ObservationsService.observation_fields
@@ -57,13 +63,13 @@ export class ControlPanel {
   // running = false;
 
   async run() {
-    const observation: observationFormDTO | {status: string} = 
+    const observation: observationFormDTO | privilegedObservationFormDTO | {status: string}  = 
       {...this.form.getRawValue() as unknown as observationFormDTO, status: "Pending"};
 
     const user = this.auth.user();
     const session = this.auth.session();
 
-    const reqBody: observationBodyDTO = {
+    const reqBody: observationBodyDTO | privilegedObservationBodyDTO = {
       "observation": {
         "observation_name": String(this.form.value["name"]),
         "center_frequency": Number(this.form.value["cFreq"]),
@@ -140,4 +146,34 @@ export class ControlPanel {
     }
   }
 
+  public async canShowField(fieldTitle: any){
+    if (this.privilegedFieldNames.includes(fieldTitle)) {
+      return await this.auth.isPrivileged()
+    }
+    return true;
+  }
+
+  async ngOnInit(){
+    while (!this.auth.sessionLoaded()) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    }
+
+    this.visibleFields = [];
+    for (const field of this.fields) {
+      if (await this.canShowField(field.title)) {
+        this.visibleFields.push(field.title);
+      }
+    }
+
+    this.privilegedFieldNames.forEach(async field => {
+    const control = this.form.get(field);
+    if (!control) return;
+
+    if (await this.auth.isPrivileged()) {
+      control.setValidators([Validators.required]);
+    }
+    control.updateValueAndValidity();
+  });
+
+  }
 }

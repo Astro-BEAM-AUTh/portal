@@ -3,7 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { observationSubmissionSignal } from '../../../services/signal';
-import { observationFormDTO , observationSubmissionDTO } from '../control-panel/dtos/control-panel.dto';
+import { observationFormDTO , observationSubmissionDTO, privilegedObservationSubmissionDTO } from '../control-panel/dtos/control-panel.dto';
 import { ObservationsService } from '../../../services/observations';
 import { AuthService } from '../../../services/auth';
 import { Subscription, SubscriptionLike } from 'rxjs';
@@ -28,4 +28,7 @@ export class ObservationHistory {
   constructor(){
   }
 
+  isPrivilegedSubmission(submission: any): submission is privilegedObservationSubmissionDTO{
+    return "rf_gain" in submission || "if_gain" in submission || "bb_gain" in submission || "dec" in submission || "ra" in submission 
+  }
 }
