@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { signal } from '@angular/core';
-import { observationFormDTO, observationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+import { observationFormDTO, observationSubmissionDTO, privilegedObservationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
 import { AuthService } from './auth';
 import { inject } from '@angular/core/primitives/di';
 
@@ -84,36 +84,31 @@ export class ObservationsService {
       title: 'rfGain',
       alias: 'RF Gain',
       type: 'text',
-      defaultValue: 20,
-      validators: [Validators.required, Validators.min(0), Validators.max(30)]
+      validators: [Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ifGain',
       alias: 'IF Gain',
       type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(30)]
+      validators: [Validators.min(0), Validators.max(30)]
     },
     {
       title: 'bbGain',
       alias: 'BB Gain',
       type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(30)]
+      validators: [Validators.min(0), Validators.max(30)]
     },
     {
       title: 'ra',
       alias: 'RA',
       type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(359)]
+      validators: [Validators.min(0), Validators.max(359)]
     },
     {
       title: 'dec',
       alias: 'DEC',
       type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(90)]
+      validators: [Validators.min(0), Validators.max(90)]
     },
     {
       title: 'duration',
@@ -154,19 +149,19 @@ export class ObservationsService {
 
   ];
 
-  readonly history = signal<observationSubmissionDTO[] | []>([]);
+  readonly history = signal<observationSubmissionDTO[] | privilegedObservationSubmissionDTO[] | []>([]);
 
   // ...existing code... (keep your existing fields config)
 
-  addSubmission(submission: observationSubmissionDTO) {
+  addSubmission(submission: observationSubmissionDTO | privilegedObservationSubmissionDTO) {
     // Add to top of list
-    this.history.update(list => [submission, ...(list as observationSubmissionDTO[])]);
+    this.history.update(list => [submission, ...(list as privilegedObservationSubmissionDTO[])]);
   }
 
-  updateSubmissionStatus(submission: observationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
+  updateSubmissionStatus(submission: observationSubmissionDTO | privilegedObservationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
     // Update specific item completely immutably
     this.history.update(hist => 
-      (hist as observationSubmissionDTO[]).map(obs => {
+      (hist as observationSubmissionDTO[] | privilegedObservationSubmissionDTO[]).map(obs => {
         // Remove status and message from both objects for comparison
         const { status: obsStatus, message: obsMessage, ...obsRest } = obs;
         const { status: subStatus, message: subMessage, ...subRest } = submission;

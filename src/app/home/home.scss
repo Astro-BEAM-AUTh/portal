@@ -1,14 +1,17 @@
 .home {
     height: 100%;
     width: 100%;
-    display: grid;
-    grid-template-columns: 2fr 3fr;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 
     .control-panel {
         height: 100%;
         padding: 1rem 0rem 1rem 0rem;
         box-sizing: border-box;
         overflow-y: auto;
+        flex: 2;
+        min-width: 0;
     }
 
     .observation-history {
@@ -16,6 +19,13 @@
         padding: 1rem 0rem 1rem 1rem;
         box-sizing: border-box;
         overflow-y: auto;
+        flex: 3;
+        min-width: 0;
+    }
+
+    .control-panel:only-of-type,
+    .observation-history:only-of-type {
+        flex: 1;  // ← Fill available space when alone
     }
 
 }

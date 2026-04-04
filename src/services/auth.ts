@@ -24,15 +24,21 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.session());
   user = computed<User | null>(() => this.session()?.user ?? null);
 
+  private sessionLoadedSig = signal<boolean>(false);
+  sessionLoaded = computed(() => this.sessionLoadedSig());
+
+
   constructor() {
     // 1) Prime from current session once (no await in field init)
     this.supabase.auth.getSession().then(({ data }) => {
       this.sessionSig.set(data.session ?? null);
+      this.sessionLoadedSig.set(true);
     });
 
     // 2) Keep it in sync on changes (login/logout/refresh)
     this.supabase.auth.onAuthStateChange((_event, session) => {
       this.sessionSig.set(session);
+      this.sessionLoadedSig.set(true);
     });
   }
 
@@ -61,6 +67,27 @@ export class AuthService {
   getAccessToken(): string | null {
     const session = this.sessionSig();
     return session?.access_token ?? null;
+  }
+
+  async getProfile(userId: string) {
+    const { data, error } = await this.supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    return data?.role; // 'user' | 'privileged' | 'admin'
+  }
+
+  getCurrentUserId(){
+    const user = this.user();
+    return user?.id ?? null;
+  }
+
+  async isPrivileged(){
+    const userId = this.getCurrentUserId();
+    const profile = await this.getProfile(userId as string);
+    return (profile == "privileged" || profile == "admin");
   }
 }
 
