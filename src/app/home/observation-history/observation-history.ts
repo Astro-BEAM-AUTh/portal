@@ -27,6 +27,11 @@ export class ObservationHistory {
   }
 
   isPrivilegedSubmission(submission: any): submission is privilegedObservationSubmissionDTO{
-    return "rf_gain" in submission || "if_gain" in submission || "bb_gain" in submission || "dec" in submission || "ra" in submission 
+    //dont render other fields if all arent in the object or are null
+    return "rf_gain" in submission && submission["rf_gain"] != null 
+        || "if_gain" in submission && submission["if_gain"] != null 
+        || "bb_gain" in submission && submission["bb_gain"] != null 
+        || "dec" in submission && submission["dec"] != null
+        || "ra" in submission && submission["ra"] != null
   }
 }
