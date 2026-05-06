@@ -9,8 +9,8 @@ import { createClient } from '@supabase/supabase-js';
 
 export class AuthService {
 
-  supabaseUrl = 'https://njgyfhwtjelumutcbtrb.supabase.co'
-  supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qZ3lmaHd0amVsdW11dGNidHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIzODQ0MDgsImV4cCI6MjA3Nzk2MDQwOH0.RtHKjakCRRuHHvaKWaJOI_dlAv7hZ7Td7-_NdXFOGRM'
+  supabaseUrl = import.meta.env['NG_APP_SUPABASE_URL']
+  supabaseAnonKey = import.meta.env['NG_APP_SUPABASE_ANON_KEY']
   supabase = createClient(
     this.supabaseUrl,
     this.supabaseAnonKey,

@@ -1,67 +1,20 @@
-interface observation {
-  "observation_name": string,
-  "center_frequency": number,
-  
-  "bins": number,
-  "channels": number,
-  "bandwidth": string,
-  "integration_time": number,
-  "observation_type": string,
-  "output_filename": string,
-  "receive_csv": boolean,
-  "preferred_email": string,
-}
+import type { components } from '../../../../api/backend-openapi';
 
-interface privilegedObservation extends observation {
-  "rf_gain": number, //optional later
-  "if_gain": number, //optional later
-  "bb_gain": number, //optional later
-  "dec": number, //optional later
-  "ra": number, //optional later
-}
+export type ObservationCreateDTO = components['schemas']['ObservationCreate'];
+export type ObservationReadDTO = components['schemas']['ObservationRead'];
+export type UserCreateDTO = components['schemas']['UserCreate'];
+export type ObservationStatusDTO = components['schemas']['ObservationStatus'];
 
 export interface observationBodyDTO {
-  "observation": observation,
-  "requestor": {
-    "email": string,
-    "user_id": string,
-    "username": string
-  } | null
+  observation: ObservationCreateDTO;
+  requestor: UserCreateDTO;
 }
 
-export interface privilegedObservationBodyDTO {
-  "observation": privilegedObservation,
-  "requestor": {
-    "email": string,
-    "user_id": string,
-    "username": string
-  } | null
-}
+export type privilegedObservationBodyDTO = observationBodyDTO;
 
-export interface observationSubmissionDTO {
-    "observation_name": string,
-    "center_frequency": number,
-    "bins": number,
-    "channels": number,
-    "bandwidth": string,
-    "integration_time": number,
-    "observation_type": string,
-    "output_filename": string,
-    "receive_csv": boolean,
-    "email"?: string,
-    "user_id"?: string,
-    "username"?: string,
-    "status": string,
-    "message": string
-}
+export type observationSubmissionDTO = ObservationReadDTO;
 
-export interface privilegedObservationSubmissionDTO extends observationSubmissionDTO {
-  "rf_gain": number, //optional later
-  "if_gain": number, //optional later
-  "bb_gain": number, //optional later
-  "dec": number, //optional later
-  "ra": number, //optional later
-}
+export type privilegedObservationSubmissionDTO = ObservationReadDTO;
 
 export interface observationFormDTO{
   name: String,

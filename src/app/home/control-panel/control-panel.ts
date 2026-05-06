@@ -10,10 +10,9 @@ import { MatSelectModule } from '@angular/material/select'
 import { MatButtonModule } from '@angular/material/button'
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
-import { CloseScrollStrategy, Overlay } from '@angular/cdk/overlay';
+import { Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
-import { observationSubmissionSignal } from '../../../services/signal'
-import { observationBodyDTO, observationFormDTO, observationSubmissionDTO, privilegedObservationBodyDTO, privilegedObservationFormDTO } from './dtos/control-panel.dto';
+import { observationBodyDTO, privilegedObservationBodyDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -68,29 +67,41 @@ export class ControlPanel {
     const user = this.auth.user();
     const session = this.auth.session();
 
+    const centerFrequencyRaw = Number(this.form.value["cFreq"]);
+    const centerFrequencyMhz = centerFrequencyRaw > 1000000 ? centerFrequencyRaw / 1000000 : centerFrequencyRaw;
+
     let observationData: any = {
-        "observation_name": String(this.form.value["name"]),
-        "center_frequency": Number(this.form.value["cFreq"]),
-        "bins": Number(this.form.value["bins"]),
-        "channels": Number(this.form.value["channels"]),
-        "bandwidth": String(this.form.value["bandwidth"]),
+        "target_name": String(this.form.value["name"]),
+        "observation_object": String(this.form.value["name"]),
+        "center_frequency": centerFrequencyMhz,
+        "ra": Number(this.form.value["ra"] ?? 0),
+        "dec": Number(this.form.value["dec"] ?? 0),
+        "rf_gain": Number(this.form.value["rfGain"] ?? 0),
+        "if_gain": Number(this.form.value["ifGain"] ?? 0),
+        "bb_gain": Number(this.form.value["bbGain"] ?? 0),
         "integration_time": Number(this.form.value["duration"]),
         "observation_type": String(this.form.value["observationType"]),
         "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
-        "receive_csv": this.form.value["csvBool"] === "Yes",
-        "preferred_email": String(this.form.value["prefEmail"])
       }
-    
-    let requestor = null
-    if(user){
+
+    let requestor;
+    if (user) {
       requestor = {
         "email": user?.email || "",
-        "username": user?.user_metadata["username"] || "",
+        "username": user?.user_metadata["username"] || user?.email?.split('@')[0] || "astro_user",
         "user_id": user?.id || ""
       }
+    } else {
+      const preferredEmail = String(this.form.value["prefEmail"] || "guest@astrobeam.gr");
+      const guestId = `guest_${preferredEmail.toLowerCase()}`;
+      requestor = {
+        "email": preferredEmail,
+        "username": preferredEmail.split('@')[0] || guestId,
+        "user_id": guestId
+      };
     }
 
-    if(await this.auth.isPrivileged()){
+    if (await this.auth.isPrivileged()) {
       observationData = { ...observationData,
         "rf_gain": Number(this.form.value["rfGain"]),
         "if_gain": Number(this.form.value["ifGain"]),
@@ -106,83 +117,67 @@ export class ControlPanel {
     }
     this.ObservationsService.addSubmission(
       {...reqBody.observation, 
-        ...reqBody.requestor, 
-        "status": "Pending", "message": ""
+        "observation_id": "pending_local",
+        "user_id": -1,
+        "status": "pending",
+        "submitted_at": new Date().toISOString(),
+        "completed_at": null,
       }
     );
 
-    let id;
-    if(user){
-      const {data, error} = await this.auth.supabase.from('observations')
-      .insert([{...reqBody.observation, ...reqBody.requestor}]) //remember to create corresponding_table
-      .select() //return uuid
-      if(error){
-        console.error(error)
-      }
-      id = (data as any)[0].id
-    }
-
     try{
-      const res = await fetch(import.meta.env['NG_APP_API_URL'], {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}` 
-        },
-        body: JSON.stringify(reqBody),
+      const res = await this.ObservationsService.submitObservation(reqBody, session?.access_token);
+
+      if (!res.ok) {
+        this.ObservationsService.updateSubmissionStatus({
+          ...reqBody.observation,
+          observation_id: "pending_local",
+          user_id: -1,
+          status: "pending",
+          submitted_at: new Date().toISOString(),
+          completed_at: null,
+        }, "failed");
+        this.snackBar.open(`Request failed: ${res.status}`, 'Close', {
+          duration: 5000,
+          horizontalPosition: 'center',
+          verticalPosition: 'bottom',
+          panelClass: ['error-snackbar']
+        });
+        return;
+      }
+
+      // Submission is accepted by backend and remains pending until backend processing updates it.
+      this.ObservationsService.updateSubmissionStatus({
+        ...reqBody.observation,
+        observation_id: "pending_local",
+        user_id: -1,
+        status: "pending",
+        submitted_at: new Date().toISOString(),
+        completed_at: null,
+      }, "pending");
+
+      this.snackBar.open('Observation submitted and accepted for processing.', 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['success-snackbar']
       });
-      
-      if(user){ //with user
-        if(!res.ok){ //not okay res
-          // Update status on failure
-          this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
-          await this.auth.supabase
-          .from('observations')
-          .update({status: "Failed", message: `${res.status}`})
-          .eq('id', id)
-          throw new Error(`Response Status: ${res.status}`)
-        } else { //ok res with user
-          // Update status on success (if needed, or maybe the backend returns final status)
-          // If the backend returns 'Finished', update it here
-          this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Finished"); 
-          await this.auth.supabase
-          .from('observations')
-          .update({status: "Finished"})
-          .eq('id', id)
-        }
-      } else { // no user
-        if(!res.ok){ //not okay res
-          this.snackBar.open(`Request Failed: ${res.status}`, 'Close', {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['error-snackbar']
-          });
-        } else { //okay res
-          this.snackBar.open('Observation Submitted Successfully.', 'Close', {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['success-snackbar']
-          });
-        }
-      }
     } catch(e){ // error handling
-      if(user){ //with user
-        this.ObservationsService.updateSubmissionStatus({...reqBody.observation, ...reqBody.requestor, status: "Pending", message: ""}, "Failed");
-        await this.auth.supabase
-        .from('observations')
-        .update({status: "Failed"})
-        .eq('id', id)
-        console.error(e)
-      } else { //without
-        this.snackBar.open(`Error Submitting Request.`, 'Close', {
-            duration: 5000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom',
-            panelClass: ['error-snackbar']
-          });
-      }
+      this.ObservationsService.updateSubmissionStatus({
+        ...reqBody.observation,
+        observation_id: "pending_local",
+        user_id: -1,
+        status: "pending",
+        submitted_at: new Date().toISOString(),
+        completed_at: null,
+      }, "failed");
+      console.error(e)
+      this.snackBar.open(`Error submitting request.`, 'Close', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar']
+      });
     }
   }
 

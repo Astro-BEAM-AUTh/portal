@@ -1,23 +1,25 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
-import { signal } from '@angular/core';
-import { observationFormDTO, observationSubmissionDTO, privilegedObservationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+import { inject, signal } from '@angular/core';
+import { observationBodyDTO, observationSubmissionDTO, ObservationStatusDTO, privilegedObservationBodyDTO, privilegedObservationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
 import { AuthService } from './auth';
-import { inject } from '@angular/core/primitives/di';
 
 @Injectable({
   providedIn: 'root',
 })
 
 export class ObservationsService {
-  private auth = inject(AuthService)
+  private auth = inject(AuthService);
   private loaded = false;
+  private backendBaseUrl = (import.meta.env['NG_APP_BACKEND_URL'] || '').replace(/\/$/, '');
+  private submitUrl = import.meta.env['NG_APP_API_URL'] || `${this.backendBaseUrl}/v1/telescope/observations`;
+  private historyUrl = import.meta.env['NG_APP_OBSERVATION_HISTORY_URL'] || (this.backendBaseUrl ? `${this.backendBaseUrl}/v1/telescope/observations/history` : '');
 
-  constructor(){
-    this.auth.supabase.auth.onAuthStateChange((event, session)=>{
+  constructor() {
+    this.auth.supabase.auth.onAuthStateChange((event, _session) => {
       if (event === 'SIGNED_IN') {
-        if(!this.loaded){
-          this.handleState();
+        if (!this.loaded) {
+          this.loadHistoryFromBackend();
         }
         this.loaded = true;
       }
@@ -30,7 +32,7 @@ export class ObservationsService {
     // Only fetch if user is present and no data loaded yet
     const user = this.auth.user();
     if (user && !this.loaded && (!this.history() || this.history().length === 0)) {
-      this.handleState();
+      this.loadHistoryFromBackend();
     }
   }
 
@@ -158,41 +160,64 @@ export class ObservationsService {
     this.history.update(list => [submission, ...(list as privilegedObservationSubmissionDTO[])]);
   }
 
-  updateSubmissionStatus(submission: observationSubmissionDTO | privilegedObservationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
+  updateSubmissionStatus(submission: observationSubmissionDTO | privilegedObservationSubmissionDTO, status: ObservationStatusDTO) {
     // Update specific item completely immutably
-    this.history.update(hist => 
+    this.history.update(hist =>
       (hist as observationSubmissionDTO[] | privilegedObservationSubmissionDTO[]).map(obs => {
-        // Remove status and message from both objects for comparison
-        const { status: obsStatus, message: obsMessage, ...obsRest } = obs;
-        const { status: subStatus, message: subMessage, ...subRest } = submission;
-        if(JSON.stringify(obsRest) === JSON.stringify(subRest)){
-          obs.status = status
+        if (obs.output_filename === submission.output_filename) {
+          obs.status = status;
         }
-        return obs }
-      )
+        return obs;
+      })
     );
   }
 
-  deleteHistoryInstance(){
-    this.history.update(()=>{return []})
+  deleteHistoryInstance() {
+    this.history.update(() => {
+      return [];
+    });
   }
 
-  async handleState(){
-    const email = this.auth.user()?.email
-    const {data, error} = await this.auth.supabase
-    .from('observations')
-    .select('*')
-    .eq('email', email)
+  async submitObservation(reqBody: observationBodyDTO | privilegedObservationBodyDTO, accessToken?: string) {
+    return fetch(this.submitUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+      },
+      body: JSON.stringify(reqBody),
+    });
+  }
 
-    if (error) {
-      console.error(error);
-    } else {
-      // data contains all observations for this user
-      this.loaded = true;
-      data.forEach(obs => {
-        this.addSubmission(obs)
+  async loadHistoryFromBackend() {
+    if (!this.historyUrl) {
+      // Backend history endpoint is optional until implemented.
+      return;
+    }
+
+    try {
+      const accessToken = this.auth.getAccessToken();
+      const res = await fetch(this.historyUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
+        }
       });
+
+      if (!res.ok) {
+        console.error(`Failed to fetch observation history: ${res.status}`);
+        return;
+      }
+
+      const payload = await res.json();
+      const items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
+
+      this.history.update(() => items as observationSubmissionDTO[]);
+      this.loaded = true;
+    } catch (error) {
+      console.error('Failed to load observation history from backend', error);
     }
   }
-  
+
 }
