@@ -28,8 +28,10 @@ export class ObservationsService {
   private auth = inject(AuthService);
   private loaded = false;
   private backendBaseUrl = (import.meta.env['NG_APP_BACKEND_URL'] || '').replace(/\/$/, '');
-  private submitUrl = import.meta.env['NG_APP_API_URL'] || `${this.backendBaseUrl}/v1/telescope/observations`;
-  private historyUrl = import.meta.env['NG_APP_OBSERVATION_HISTORY_URL'] || (this.backendBaseUrl ? `${this.backendBaseUrl}/v1/telescope/observations/history` : '');
+  private observationsUrl = `${this.backendBaseUrl}/v1/observations`;
+  private submitUrl = this.observationsUrl;
+  private historyUrl = this.observationsUrl;
+  readonly guestHistoryDebugEnabled = String(import.meta.env['NG_APP_DEBUG_GUEST_HISTORY'] ?? 'true').toLowerCase() === 'true';
 
   constructor() {
     this.auth.supabase.auth.onAuthStateChange((event, _session) => {
@@ -42,12 +44,15 @@ export class ObservationsService {
       if (event === 'SIGNED_OUT') {
         this.deleteHistoryInstance();
         this.loaded = false;
+        if (this.guestHistoryDebugEnabled) {
+          // TODO: Remove guest-wide history access after debug phase and restore user-scoped visibility.
+          this.loadHistoryFromBackend();
+        }
       }
     })
 
-    // Only fetch if user is present and no data loaded yet
     const user = this.auth.user();
-    if (user && !this.loaded && (!this.history() || this.history().length === 0)) {
+    if ((user || this.guestHistoryDebugEnabled) && !this.loaded && (!this.history() || this.history().length === 0)) {
       this.loadHistoryFromBackend();
     }
   }
@@ -199,8 +204,12 @@ export class ObservationsService {
   }
 
   async loadHistoryFromBackend() {
+    if (!this.auth.user() && !this.guestHistoryDebugEnabled) {
+      return;
+    }
+
     if (!this.historyUrl) {
-      // Backend history endpoint is optional until implemented.
+      // Observation list endpoint is optional until backend connectivity is configured.
       return;
     }
 

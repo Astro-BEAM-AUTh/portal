@@ -6,7 +6,10 @@
         </div>
         <div class="container">
             <div class="content">
-                @if (!isAuthenticated() && observationSubmissions().length === 0) {
+                @if (!isAuthenticated() && isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
+                    <div>Debug mode: guest users can view shared observation history if entries exist.</div>
+                }
+                @if (!isAuthenticated() && !isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
                     <div>Sign in to view your personal observation history.</div>
                 }
                 @if (isAuthenticated() && observationSubmissions().length === 0) {
@@ -30,9 +33,13 @@
         </div>
         <div class="container">
             <div class="content">
-                @if (!isAuthenticated() && observationSubmissions().length === 0) {
+                @if (!isAuthenticated() && isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
+                    <div>Debug mode: no shared observation history is currently available.</div>
+                }
+                @if (!isAuthenticated() && !isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
                     <div>History is available after you sign in.</div>
                 }
+                <!-- TODO: Revert guest visibility and require sign-in for history after debug phase. -->
                 @if (isAuthenticated() && observationSubmissions().length === 0) {
                     <div>Your observation history is currently empty.</div>
                 }

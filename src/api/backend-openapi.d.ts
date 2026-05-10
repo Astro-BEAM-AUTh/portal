@@ -4,41 +4,49 @@
  */
 
 export interface paths {
-    "/v1/telescope/observations": {
+    "/v1/observations/": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List Observations
+         * @description Get a list of all telescope observations for the authenticated user.
+         */
+        get: operations["list_observations_v1_observations__get"];
         put?: never;
         /**
          * Submit Observation
          * @description Submit a new telescope observation request.
          */
-        post: operations["submit_observation_v1_telescope_observations_post"];
+        post: operations["submit_observation_v1_observations__post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/telescope/observations/{observation_id}": {
+    "/v1/observations/{observation_id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Observation
+         * @description Get details of a specific telescope observation by ID.
+         */
+        get: operations["get_observation_v1_observations__observation_id__get"];
         put?: never;
         post?: never;
         /**
          * Cancel Observation
          * @description Cancel a pending telescope observation request.
          */
-        delete: operations["cancel_observation_v1_telescope_observations__observation_id__delete"];
+        delete: operations["cancel_observation_v1_observations__observation_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -108,8 +116,8 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_submit_observation_v1_telescope_observations_post */
-        Body_submit_observation_v1_telescope_observations_post: {
+        /** Body_submit_observation_v1_observations__post */
+        Body_submit_observation_v1_observations__post: {
             observation: components["schemas"]["ObservationCreate"];
             requestor: components["schemas"]["UserCreate"];
         };
@@ -385,7 +393,34 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    submit_observation_v1_telescope_observations_post: {
+    list_observations_v1_observations__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of observations retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationRead"][];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    submit_observation_v1_observations__post: {
         parameters: {
             query?: never;
             header?: never;
@@ -394,7 +429,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_submit_observation_v1_telescope_observations_post"];
+                "application/json": components["schemas"]["Body_submit_observation_v1_observations__post"];
             };
         };
         responses: {
@@ -425,7 +460,45 @@ export interface operations {
             };
         };
     };
-    cancel_observation_v1_telescope_observations__observation_id__delete: {
+    get_observation_v1_observations__observation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                observation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Observation details retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObservationRead"];
+                };
+            };
+            /** @description Observation not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_observation_v1_observations__observation_id__delete: {
         parameters: {
             query?: never;
             header?: never;

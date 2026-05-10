@@ -10,9 +10,7 @@
     "test": "ng test",
     "gen:api-types:ts": "openapi-typescript http://localhost:8000/openapi.json -o src/api/backend-openapi.d.ts",
     "gen:api-types:runtime": "node scripts/generate-openapi-runtime.mjs http://localhost:8000/openapi.json src/api/backend-openapi.runtime.ts",
-    "gen:api-types": "npm run gen:api-types:ts && npm run gen:api-types:runtime",
-    "gen:api-types:url": "openapi-typescript",
-    "gen:api-runtime:url": "node scripts/generate-openapi-runtime.mjs"
+    "gen:api-types": "npm run gen:api-types:ts && npm run gen:api-types:runtime"
   },
   "prettier": {
     "printWidth": 100,
