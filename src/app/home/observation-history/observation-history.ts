@@ -3,6 +3,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { ObservationsService } from '../../../services/observations';
+import { AuthService } from '../../../services/auth';
 
 @Component({
   selector: 'app-observation-history',
@@ -17,7 +18,9 @@ import { ObservationsService } from '../../../services/observations';
 
 export class ObservationHistory {
   private obsService = inject(ObservationsService);
+  private authService = inject(AuthService);
   observationSubmissions = this.obsService.history;
+  isAuthenticated = this.authService.isAuthenticated;
 
   constructor() {}
 }

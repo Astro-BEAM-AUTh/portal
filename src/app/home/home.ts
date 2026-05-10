@@ -4,7 +4,6 @@ import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
-import { FormGroup, Form } from '@angular/forms';
 import { ControlPanel } from "./control-panel/control-panel";
 import { ObservationHistory } from "./observation-history/observation-history";
 import { AuthService } from '../../services/auth';

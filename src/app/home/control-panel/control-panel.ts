@@ -12,7 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
 import { Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
-import { observationBodyDTO, privilegedObservationBodyDTO } from './dtos/control-panel.dto';
+import { observationBodyDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -44,11 +44,6 @@ export class ControlPanel {
   private fb = inject(FormBuilder);
   public auth = inject(AuthService);
   private snackBar = inject(MatSnackBar)
-
-  public privilegedFieldNames = [
-    "rfGain", "ifGain", "bbGain", "ra", "dec"
-  ]
-  public visibleFields: any[] = [];
 
   public fields;
   public form;
@@ -101,42 +96,32 @@ export class ControlPanel {
       };
     }
 
-    if (await this.auth.isPrivileged()) {
-      observationData = { ...observationData,
-        "rf_gain": Number(this.form.value["rfGain"]),
-        "if_gain": Number(this.form.value["ifGain"]),
-        "bb_gain": Number(this.form.value["bbGain"]),
-        "dec": Number(this.form.value["dec"]),
-        "ra": Number(this.form.value["ra"]),
-      }
-    }
-
-    const reqBody: observationBodyDTO | privilegedObservationBodyDTO = {
+    const reqBody: observationBodyDTO = {
       "observation": observationData,
       "requestor": requestor,
     }
-    this.ObservationsService.addSubmission(
-      {...reqBody.observation, 
-        "observation_id": "pending_local",
-        "user_id": -1,
-        "status": "pending",
-        "submitted_at": new Date().toISOString(),
-        "completed_at": null,
-      }
-    );
+
+    const pendingSubmission = {
+      ...reqBody.observation,
+      observation_id: "pending_local",
+      user_id: -1,
+      status: "pending" as const,
+      submitted_at: new Date().toISOString(),
+      completed_at: null,
+    };
+
+    // Guests can submit but should keep an empty local history.
+    if (user) {
+      this.ObservationsService.addSubmission(pendingSubmission);
+    }
 
     try{
       const res = await this.ObservationsService.submitObservation(reqBody, session?.access_token);
 
       if (!res.ok) {
-        this.ObservationsService.updateSubmissionStatus({
-          ...reqBody.observation,
-          observation_id: "pending_local",
-          user_id: -1,
-          status: "pending",
-          submitted_at: new Date().toISOString(),
-          completed_at: null,
-        }, "failed");
+        if (user) {
+          this.ObservationsService.updateSubmissionStatus(pendingSubmission, "failed");
+        }
         this.snackBar.open(`Request failed: ${res.status}`, 'Close', {
           duration: 5000,
           horizontalPosition: 'center',
@@ -147,14 +132,9 @@ export class ControlPanel {
       }
 
       // Submission is accepted by backend and remains pending until backend processing updates it.
-      this.ObservationsService.updateSubmissionStatus({
-        ...reqBody.observation,
-        observation_id: "pending_local",
-        user_id: -1,
-        status: "pending",
-        submitted_at: new Date().toISOString(),
-        completed_at: null,
-      }, "pending");
+      if (user) {
+        this.ObservationsService.updateSubmissionStatus(pendingSubmission, "pending");
+      }
 
       this.snackBar.open('Observation submitted and accepted for processing.', 'Close', {
         duration: 5000,
@@ -163,14 +143,9 @@ export class ControlPanel {
         panelClass: ['success-snackbar']
       });
     } catch(e){ // error handling
-      this.ObservationsService.updateSubmissionStatus({
-        ...reqBody.observation,
-        observation_id: "pending_local",
-        user_id: -1,
-        status: "pending",
-        submitted_at: new Date().toISOString(),
-        completed_at: null,
-      }, "failed");
+      if (user) {
+        this.ObservationsService.updateSubmissionStatus(pendingSubmission, "failed");
+      }
       console.error(e)
       this.snackBar.open(`Error submitting request.`, 'Close', {
         duration: 5000,
@@ -181,34 +156,10 @@ export class ControlPanel {
     }
   }
 
-  public async canShowField(fieldTitle: any){
-    if (this.privilegedFieldNames.includes(fieldTitle)) {
-      return await this.auth.isPrivileged()
-    }
-    return true;
-  }
-
   async ngOnInit(){
     while (!this.auth.sessionLoaded()) {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
-
-    this.visibleFields = [];
-    for (const field of this.fields) {
-      if (await this.canShowField(field.title)) {
-        this.visibleFields.push(field.title);
-      }
-    }
-
-    this.privilegedFieldNames.forEach(async field => {
-    const control = this.form.get(field);
-    if (!control) return;
-
-    if (await this.auth.isPrivileged()) {
-      control.setValidators([Validators.required]);
-    }
-    control.updateValueAndValidity();
-  });
 
   }
 }

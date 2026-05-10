@@ -8,7 +8,6 @@ import { createClient } from '@supabase/supabase-js';
 })
 
 export class AuthService {
-
   supabaseUrl = import.meta.env['NG_APP_SUPABASE_URL']
   supabaseAnonKey = import.meta.env['NG_APP_SUPABASE_ANON_KEY']
   supabase = createClient(
@@ -69,25 +68,9 @@ export class AuthService {
     return session?.access_token ?? null;
   }
 
-  async getProfile(userId: string) {
-    const { data, error } = await this.supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', userId)
-      .single();
-
-    return data?.role; // 'user' | 'privileged' | 'admin'
-  }
-
   getCurrentUserId(){
     const user = this.user();
     return user?.id ?? null;
-  }
-
-  async isPrivileged(){
-    const userId = this.getCurrentUserId();
-    const profile = await this.getProfile(userId as string);
-    return (profile == "privileged" || profile == "admin");
   }
 }
 

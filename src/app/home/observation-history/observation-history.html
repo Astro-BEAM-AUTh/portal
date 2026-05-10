@@ -6,6 +6,12 @@
         </div>
         <div class="container">
             <div class="content">
+                @if (!isAuthenticated() && observationSubmissions().length === 0) {
+                    <div>Sign in to view your personal observation history.</div>
+                }
+                @if (isAuthenticated() && observationSubmissions().length === 0) {
+                    <div>You have no observation submissions yet.</div>
+                }
 
                 @for(pastSubmission of observationSubmissions(); track pastSubmission){
                     <div>{{pastSubmission.target_name}}'s status: {{pastSubmission.status}}</div>
@@ -24,6 +30,12 @@
         </div>
         <div class="container">
             <div class="content">
+                @if (!isAuthenticated() && observationSubmissions().length === 0) {
+                    <div>History is available after you sign in.</div>
+                }
+                @if (isAuthenticated() && observationSubmissions().length === 0) {
+                    <div>Your observation history is currently empty.</div>
+                }
                 <mat-accordion>
                     @for(pastSubmission of observationSubmissions(); track pastSubmission){
                         <mat-expansion-panel>

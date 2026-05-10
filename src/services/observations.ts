@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { inject, signal } from '@angular/core';
-import { observationBodyDTO, observationSubmissionDTO, ObservationStatusDTO, privilegedObservationBodyDTO, privilegedObservationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+import { observationBodyDTO, observationSubmissionDTO, ObservationStatusDTO } from '../app/home/control-panel/dtos/control-panel.dto';
 import { AuthService } from './auth';
 
 @Injectable({
@@ -151,19 +151,19 @@ export class ObservationsService {
 
   ];
 
-  readonly history = signal<observationSubmissionDTO[] | privilegedObservationSubmissionDTO[] | []>([]);
+  readonly history = signal<observationSubmissionDTO[] | []>([]);
 
   // ...existing code... (keep your existing fields config)
 
-  addSubmission(submission: observationSubmissionDTO | privilegedObservationSubmissionDTO) {
+  addSubmission(submission: observationSubmissionDTO) {
     // Add to top of list
-    this.history.update(list => [submission, ...(list as privilegedObservationSubmissionDTO[])]);
+    this.history.update(list => [submission, ...(list as observationSubmissionDTO[])]);
   }
 
-  updateSubmissionStatus(submission: observationSubmissionDTO | privilegedObservationSubmissionDTO, status: ObservationStatusDTO) {
+  updateSubmissionStatus(submission: observationSubmissionDTO, status: ObservationStatusDTO) {
     // Update specific item completely immutably
     this.history.update(hist =>
-      (hist as observationSubmissionDTO[] | privilegedObservationSubmissionDTO[]).map(obs => {
+      (hist as observationSubmissionDTO[]).map(obs => {
         if (obs.output_filename === submission.output_filename) {
           obs.status = status;
         }
@@ -178,7 +178,7 @@ export class ObservationsService {
     });
   }
 
-  async submitObservation(reqBody: observationBodyDTO | privilegedObservationBodyDTO, accessToken?: string) {
+  async submitObservation(reqBody: observationBodyDTO, accessToken?: string) {
     return fetch(this.submitUrl, {
       method: 'POST',
       headers: {
