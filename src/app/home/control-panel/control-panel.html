@@ -7,7 +7,7 @@
         <div class="content">
             <form [formGroup]="form" [id]="form">
                 @for (field of fields; track field) {
-                    @if (field.type == "text" && (field.title != "name" && field.title != "cFreq" && field.title != "prefEmail")){
+                    @if (field.type == "text" && (field.title != "targetName" && field.title != "observationObject" && field.title != "prefEmail")){
                         <mat-form-field appearance="outline" style="width: 100%;"
                         [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
                             <mat-label>{{field.alias}}</mat-label>
@@ -17,7 +17,7 @@
                         </mat-form-field>
                         <p></p>
                     }
-                    @if (field.title == "name" || field.title == "cFreq" || field.title == "prefEmail"){
+                    @if (field.title == "targetName" || field.title == "observationObject" || field.title == "prefEmail"){
                         <mat-form-field appearance="outline" style="width: 100%;"
                         [class.invalid]="field.validators.length >= 1 && form.get(field.title)?.invalid">
                             <mat-label>{{field.alias}}</mat-label>
@@ -35,7 +35,7 @@
                             <mat-select [formControlName]="field.title">
                                 @for (value of field.values; track value){
                                     <mat-option [value]="value">
-                                        {{value}}
+                                        {{formatSelectLabel(field.title, value)}}
                                     </mat-option>
                                 }
                             </mat-select>

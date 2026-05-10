@@ -1,8 +1,24 @@
 import { Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
 import { inject, signal } from '@angular/core';
-import { observationBodyDTO, observationSubmissionDTO, ObservationStatusDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+import { observationBodyDTO, ObservationCreateDTO, observationSubmissionDTO, ObservationStatusDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+import { OBSERVATION_CREATE_DEFAULTS, OBSERVATION_TYPE_VALUES } from '../api/backend-openapi.runtime';
 import { AuthService } from './auth';
+
+type FieldType = 'text' | 'select';
+type FieldDataType = 'string' | 'number';
+
+export interface ObservationFieldConfig {
+  title: string;
+  alias: string;
+  type: FieldType;
+  placeholder?: string;
+  defaultValue?: string | number;
+  values?: Array<string | number>;
+  validators: unknown[];
+  payloadKey?: keyof ObservationCreateDTO;
+  dataType?: FieldDataType;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -36,97 +52,98 @@ export class ObservationsService {
     }
   }
 
-  observation_fields = [
+  observation_fields: ObservationFieldConfig[] = [
     {
-      title: 'name',
-      alias: 'Observation Name',
+      title: 'targetName',
+      alias: 'Target Name',
       type: 'text',
-      placeholder: 'Enter name here...',
-      validators: [Validators.required]
+      placeholder: 'Enter target name...',
+      validators: [Validators.required],
+      payloadKey: 'target_name',
+      dataType: 'string',
+    },
+    {
+      title: 'observationObject',
+      alias: 'Observation Object',
+      type: 'text',
+      placeholder: 'Enter observation object...',
+      validators: [Validators.required],
+      payloadKey: 'observation_object',
+      dataType: 'string',
     },
     {
       title: 'observationType',
       alias: 'Observation Type',
       type: 'select',
-      defaultValue: 'Hot Calibration',
-      values: ["Cold Calibration", "Hot Calibration", "Target Observation"],
-      validators: [Validators.required]
+      defaultValue: (OBSERVATION_CREATE_DEFAULTS.observation_type ?? 'target_observation') as ObservationCreateDTO['observation_type'],
+      values: [...OBSERVATION_TYPE_VALUES] as Array<ObservationCreateDTO['observation_type']>,
+      validators: [Validators.required],
+      payloadKey: 'observation_type',
+      dataType: 'string',
     },
     {
       title: 'cFreq',
-      alias: 'Center Frequency (Hz)',
+      alias: 'Center Frequency (MHz)',
       type: 'text',
-      defaultValue: '1.45e9',
-      validators: [Validators.required]
-    },
-    {
-      title: 'bandwidth',
-      alias: 'Bandwidth',
-      type: 'select',
-      defaultValue: '2.4MHz',
-      values: ["500kHz", "1MHz", "2MHz", "2.4MHz", "3.2MHz"],
-      validators: [Validators.required]
-    },
-    {
-      title: 'channels',
-      alias: 'Number of Channels',
-      type: 'select',
-      defaultValue: 2048,
-      values: [256, 512, 1024, 2048],
-      validators: [Validators.required]
-    },
-    {
-      title: 'bins',
-      alias: 'Number of Bins',
-      type: 'text',
-      defaultValue: 500,
-      validators: [Validators.required] //pending range
+      defaultValue: 1450,
+      validators: [Validators.required, Validators.min(0.1)],
+      payloadKey: 'center_frequency',
+      dataType: 'number',
     },
     {
       title: 'rfGain',
       alias: 'RF Gain',
       type: 'text',
-      validators: [Validators.min(0), Validators.max(30)]
+      defaultValue: 0,
+      validators: [Validators.required, Validators.min(0), Validators.max(30)],
+      payloadKey: 'rf_gain',
+      dataType: 'number',
     },
     {
       title: 'ifGain',
       alias: 'IF Gain',
       type: 'text',
-      validators: [Validators.min(0), Validators.max(30)]
+      defaultValue: 0,
+      validators: [Validators.required, Validators.min(0), Validators.max(30)],
+      payloadKey: 'if_gain',
+      dataType: 'number',
     },
     {
       title: 'bbGain',
       alias: 'BB Gain',
       type: 'text',
-      validators: [Validators.min(0), Validators.max(30)]
+      defaultValue: 0,
+      validators: [Validators.required, Validators.min(0), Validators.max(30)],
+      payloadKey: 'bb_gain',
+      dataType: 'number',
     },
     {
       title: 'ra',
       alias: 'RA',
       type: 'text',
-      validators: [Validators.min(0), Validators.max(359)]
+      defaultValue: 0,
+      validators: [Validators.required, Validators.min(0), Validators.max(359.999999)],
+      payloadKey: 'ra',
+      dataType: 'number',
     },
     {
       title: 'dec',
       alias: 'DEC',
       type: 'text',
-      validators: [Validators.min(0), Validators.max(90)]
+      defaultValue: 0,
+      validators: [Validators.required, Validators.min(-90), Validators.max(90)],
+      payloadKey: 'dec',
+      dataType: 'number',
     },
     {
-      title: 'duration',
-      alias: 'Duration (in seconds)',
+      title: 'integrationTime',
+      alias: 'Integration Time (seconds)',
       type: 'text',
       defaultValue: 60,
-      placeholder: 'Enter the duration of the observation here...',
-      validators: [Validators.required, Validators.min(0), Validators.max(1800)]
-    },
-    {
-      title: 'csvBool',
-      alias: 'Receive Raw Data as CSV?',
-      type: 'select',
-      defaultValue: "No",
-      values: ["Yes", "No"],
-      validators: [Validators.required]
+      placeholder: 'Enter integration time in seconds...',
+      validators: [Validators.required, Validators.min(0), Validators.max(1800)],
+      payloadKey: 'integration_time',
+      dataType: 'number',
     },
     {
       title: 'prefEmail',
@@ -137,16 +154,8 @@ export class ObservationsService {
     },
 
   /*
-  observation object is assigned at runtime
-  integration duration same as duration in s
+  integration duration same as integration time in s
   autogen output filename
-
-  cooldown, no more than 1h between obs, maybe elevated privs
-
-  ranges:
-  center freq: - pending - (ex: 1.42e9)
-  bandwith: pending
-  bins: pending
   */
 
   ];

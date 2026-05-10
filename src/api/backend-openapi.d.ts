@@ -128,7 +128,7 @@ export interface components {
          *       "if_gain": 20,
          *       "integration_time": 600,
          *       "observation_object": "Andromeda Galaxy",
-         *       "observation_type": "imaging",
+         *       "observation_type": "target_observation",
          *       "output_filename": "m31_observation.fits",
          *       "ra": 10.68470833,
          *       "rf_gain": 30,
@@ -177,10 +177,10 @@ export interface components {
              */
             bb_gain: number;
             /**
-             * Observation Type
              * @description Type of observation
+             * @default target_observation
              */
-            observation_type: string;
+            observation_type: components["schemas"]["ObservationType"];
             /**
              * Integration Time
              * @description Integration time in seconds
@@ -203,7 +203,7 @@ export interface components {
          *       "integration_time": 600,
          *       "observation_id": "obs_20231110_001",
          *       "observation_object": "Andromeda Galaxy",
-         *       "observation_type": "imaging",
+         *       "observation_type": "target_observation",
          *       "output_filename": "m31_observation.fits",
          *       "ra": 10.68470833,
          *       "rf_gain": 30,
@@ -255,10 +255,10 @@ export interface components {
              */
             bb_gain: number;
             /**
-             * Observation Type
              * @description Type of observation
+             * @default target_observation
              */
-            observation_type: string;
+            observation_type: components["schemas"]["ObservationType"];
             /**
              * Integration Time
              * @description Integration time in seconds
@@ -299,6 +299,12 @@ export interface components {
          * @enum {string}
          */
         ObservationStatus: "pending" | "in_progress" | "completed" | "failed" | "cancelled";
+        /**
+         * ObservationType
+         * @description Enumeration for the type of an observation.
+         * @enum {string}
+         */
+        ObservationType: "hot_calibration" | "cold_calibration" | "target_observation";
         /**
          * StatusResponse
          * @description Generic status response for health checks and system status.

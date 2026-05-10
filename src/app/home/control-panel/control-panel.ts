@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { formatDate } from '@angular/common';
-import { Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
@@ -12,7 +11,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MAT_SELECT_SCROLL_STRATEGY } from '@angular/material/select';
 import { Overlay } from '@angular/cdk/overlay';
 import { ObservationsService } from '../../../services/observations';
-import { observationBodyDTO } from './dtos/control-panel.dto';
+import { observationBodyDTO, ObservationCreateDTO } from './dtos/control-panel.dto';
 import { AuthService } from '../../../services/auth';
 
 @Component({
@@ -57,27 +56,40 @@ export class ControlPanel {
     this.form = this.fb.group(controls)
   }
 
+  formatSelectLabel(fieldTitle: string, value: string | number): string {
+    if (fieldTitle === 'observationType' && typeof value === 'string') {
+      return value
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+    }
+
+    return String(value);
+  }
+
   async run() {
 
     const user = this.auth.user();
     const session = this.auth.session();
 
-    const centerFrequencyRaw = Number(this.form.value["cFreq"]);
-    const centerFrequencyMhz = centerFrequencyRaw > 1000000 ? centerFrequencyRaw / 1000000 : centerFrequencyRaw;
+    const formValue = this.form.value as Record<string, unknown>;
 
-    let observationData: any = {
-        "target_name": String(this.form.value["name"]),
-        "observation_object": String(this.form.value["name"]),
-        "center_frequency": centerFrequencyMhz,
-        "ra": Number(this.form.value["ra"] ?? 0),
-        "dec": Number(this.form.value["dec"] ?? 0),
-        "rf_gain": Number(this.form.value["rfGain"] ?? 0),
-        "if_gain": Number(this.form.value["ifGain"] ?? 0),
-        "bb_gain": Number(this.form.value["bbGain"] ?? 0),
-        "integration_time": Number(this.form.value["duration"]),
-        "observation_type": String(this.form.value["observationType"]),
-        "output_filename": "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US"),
+    const observationData = this.fields.reduce((acc: Partial<ObservationCreateDTO>, field: any) => {
+      if (!field.payloadKey) {
+        return acc;
       }
+
+      const rawValue = formValue[field.title];
+      if (field.dataType === 'number') {
+        (acc as any)[field.payloadKey] = Number(rawValue ?? 0);
+      } else {
+        (acc as any)[field.payloadKey] = String(rawValue ?? '');
+      }
+
+      return acc;
+    }, {} as Partial<ObservationCreateDTO>);
+
+    observationData.output_filename = "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US");
 
     let requestor;
     if (user) {
@@ -97,7 +109,7 @@ export class ControlPanel {
     }
 
     const reqBody: observationBodyDTO = {
-      "observation": observationData,
+      "observation": observationData as ObservationCreateDTO,
       "requestor": requestor,
     }
 
