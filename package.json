@@ -7,7 +7,9 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "github-build": "ng build --configuration production --base-href https://portal.astrobeam.gr/",
-    "test": "ng test"
+    "test": "ng test",
+    "gen:api-types": "openapi-typescript http://localhost:8000/openapi.json -o src/api/backend-openapi.d.ts",
+    "gen:api-types:url": "openapi-typescript"
   },
   "prettier": {
     "printWidth": 100,
@@ -56,6 +58,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.2.0",
+    "openapi-typescript": "^7.13.0",
     "semantic-release": "^25.0.2",
     "typescript": "~5.9.2"
   }
