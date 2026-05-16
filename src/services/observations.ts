@@ -40,11 +40,11 @@ export class ObservationsService {
 		import.meta.env["NG_APP_BACKEND_URL"] || ""
 	).replace(/\/$/, "");
 	private observationsUrl = `${this.backendBaseUrl}/v1/observations/`;
-	private submitUrl = this.observationsUrl;
-	private historyUrl = this.observationsUrl;
+	private submitUrl = this.observationsUrl || undefined; // In case the env variable is not set, set to undefined to avoid making requests to an invalid URL.
+	private historyUrl = this.observationsUrl || undefined; // In case the env variable is not set, set to undefined to avoid making requests to an invalid URL.
 	readonly guestHistoryDebugEnabled =
 		String(
-			import.meta.env["NG_APP_DEBUG_GUEST_HISTORY"] ?? "true",
+			import.meta.env["NG_APP_DEBUG_GUEST_HISTORY"] ?? "false",
 		).toLowerCase() === "true";
 
 	constructor() {
@@ -212,8 +212,6 @@ export class ObservationsService {
 
 	readonly history = signal<observationSubmissionDTO[] | []>([]);
 
-	// ...existing code... (keep your existing fields config)
-
 	addSubmission(submission: observationSubmissionDTO) {
 		// Add to top of list
 		this.history.update((list) => [
@@ -244,6 +242,11 @@ export class ObservationsService {
 	}
 
 	async submitObservation(reqBody: observationBodyDTO, accessToken?: string) {
+		if (!this.submitUrl) {
+			throw new Error(
+				"Submission URL is not configured. Please set NG_APP_BACKEND_URL environment variable.",
+			);
+		}
 		return fetch(this.submitUrl, {
 			method: "POST",
 			headers: {

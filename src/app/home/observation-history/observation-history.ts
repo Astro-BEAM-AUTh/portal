@@ -16,6 +16,7 @@ export class ObservationHistory {
 	private authService = inject(AuthService);
 	observationSubmissions = this.obsService.history;
 	isAuthenticated = this.authService.isAuthenticated;
+	sessionLoaded = this.authService.sessionLoaded;
 	isGuestDebugHistoryEnabled = this.obsService.guestHistoryDebugEnabled;
 
 	constructor() {}

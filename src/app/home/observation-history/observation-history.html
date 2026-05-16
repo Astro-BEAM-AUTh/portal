@@ -6,18 +6,22 @@
         </div>
         <div class="container">
             <div class="content">
-                @if (!isAuthenticated() && isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
-                    <div>Debug mode: guest users can view shared observation history if entries exist.</div>
-                }
-                @if (!isAuthenticated() && !isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
-                    <div>Sign in to view your personal observation history.</div>
-                }
-                @if (isAuthenticated() && observationSubmissions().length === 0) {
-                    <div>You have no observation submissions yet.</div>
-                }
+                @if (!sessionLoaded()) {
+                    <div>Loading observation status...</div>
+                } @else {
+                    @if (!isAuthenticated() && isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
+                        <div>Debug mode: guest users can view shared observation history if entries exist.</div>
+                    }
+                    @if (!isAuthenticated() && !isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
+                        <div>Sign in to view your personal observation history.</div>
+                    }
+                    @if (isAuthenticated() && observationSubmissions().length === 0) {
+                        <div>You have no observation submissions yet.</div>
+                    }
 
-                @for(pastSubmission of observationSubmissions(); track pastSubmission){
-                    <div>{{pastSubmission.target_name}}'s status: {{pastSubmission.status}}</div>
+                    @for(pastSubmission of observationSubmissions(); track pastSubmission){
+                        <div>{{pastSubmission.target_name}}'s status: {{pastSubmission.status}}</div>
+                    }
                 }
             <!-- 
                 Results -> Obtain from backend (& Download?))
@@ -33,39 +37,43 @@
         </div>
         <div class="container">
             <div class="content">
-                @if (!isAuthenticated() && isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
-                    <div>Debug mode: no shared observation history is currently available.</div>
-                }
-                @if (!isAuthenticated() && !isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
-                    <div>History is available after you sign in.</div>
-                }
-                <!-- TODO: Revert guest visibility and require sign-in for history after debug phase. -->
-                @if (isAuthenticated() && observationSubmissions().length === 0) {
-                    <div>Your observation history is currently empty.</div>
-                }
-                <mat-accordion>
-                    @for(pastSubmission of observationSubmissions(); track pastSubmission){
-                        <mat-expansion-panel>
-                            <mat-expansion-panel-header>
-                                <mat-panel-title>
-                                    {{pastSubmission.target_name}}
-                                </mat-panel-title>
-                            </mat-expansion-panel-header>
-                            <div>
-                                <div><strong>Observation Object:</strong> {{pastSubmission.observation_object}}</div>
-                                <div><strong>Observation Type:</strong> {{pastSubmission.observation_type}}</div>
-                                <div><strong>Center Frequency:</strong> {{pastSubmission.center_frequency}}</div>
-                                <div><strong>RF Gain:</strong> {{pastSubmission.rf_gain}}</div>
-                                <div><strong>IF Gain:</strong> {{pastSubmission.if_gain}}</div>
-                                <div><strong>BB Gain:</strong> {{pastSubmission.bb_gain}}</div>
-                                <div><strong>RA:</strong> {{pastSubmission.ra}}</div>
-                                <div><strong>DEC:</strong> {{pastSubmission.dec}}</div>
-                                <div><strong>Duration:</strong> {{pastSubmission.integration_time}}s</div>
-                                <div><strong>Observation ID:</strong> {{pastSubmission.observation_id}}</div>
-                            </div>
-                        </mat-expansion-panel>
+                @if (!sessionLoaded()) {
+                    <div>Loading observation history...</div>
+                } @else {
+                    @if (!isAuthenticated() && isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
+                        <div>Debug mode: no shared observation history is currently available.</div>
                     }
-                </mat-accordion>
+                    @if (!isAuthenticated() && !isGuestDebugHistoryEnabled && observationSubmissions().length === 0) {
+                        <div>History is available after you sign in.</div>
+                    }
+                    <!-- TODO: Revert guest visibility and require sign-in for history after debug phase. -->
+                    @if (isAuthenticated() && observationSubmissions().length === 0) {
+                        <div>Your observation history is currently empty.</div>
+                    }
+                    <mat-accordion>
+                        @for(pastSubmission of observationSubmissions(); track pastSubmission){
+                            <mat-expansion-panel>
+                                <mat-expansion-panel-header>
+                                    <mat-panel-title>
+                                        {{pastSubmission.target_name}}
+                                    </mat-panel-title>
+                                </mat-expansion-panel-header>
+                                <div>
+                                    <div><strong>Observation Object:</strong> {{pastSubmission.observation_object}}</div>
+                                    <div><strong>Observation Type:</strong> {{pastSubmission.observation_type}}</div>
+                                    <div><strong>Center Frequency:</strong> {{pastSubmission.center_frequency}}</div>
+                                    <div><strong>RF Gain:</strong> {{pastSubmission.rf_gain}}</div>
+                                    <div><strong>IF Gain:</strong> {{pastSubmission.if_gain}}</div>
+                                    <div><strong>BB Gain:</strong> {{pastSubmission.bb_gain}}</div>
+                                    <div><strong>RA:</strong> {{pastSubmission.ra}}</div>
+                                    <div><strong>DEC:</strong> {{pastSubmission.dec}}</div>
+                                    <div><strong>Duration:</strong> {{pastSubmission.integration_time}}s</div>
+                                    <div><strong>Observation ID:</strong> {{pastSubmission.observation_id}}</div>
+                                </div>
+                            </mat-expansion-panel>
+                        }
+                    </mat-accordion>
+                }
             </div>
         </div>
     </mat-card>

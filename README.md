@@ -16,12 +16,6 @@ Generate types from a locally running backend (default: `http://localhost:8000/o
 npm run gen:api-types
 ```
 
-Generate types from any OpenAPI URL:
-
-```bash
-npm run gen:api-types:url -- https://your-backend-domain/openapi.json -o src/api/backend-openapi.d.ts
-```
-
 The generated file is:
 
 ```text

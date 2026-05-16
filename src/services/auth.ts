@@ -9,13 +9,13 @@ import { createClient } from "@supabase/supabase-js";
 export class AuthService {
 	supabaseUrl = import.meta.env["NG_APP_SUPABASE_URL"];
 	supabaseAnonKey = import.meta.env["NG_APP_SUPABASE_ANON_KEY"];
-	supabase = createClient(this.supabaseUrl, this.supabaseAnonKey, {
-		auth: {
-			persistSession: true,
-			autoRefreshToken: true,
-			detectSessionInUrl: true,
-		},
-	});
+	supabase: import("@supabase/supabase-js").SupabaseClient<
+		any,
+		"public",
+		"public",
+		any,
+		any
+	>;
 
 	// Start empty; hydrate in constructor
 	private sessionSig = signal<Session | null>(null);
@@ -28,6 +28,20 @@ export class AuthService {
 	sessionLoaded = computed(() => this.sessionLoadedSig());
 
 	constructor() {
+		if (!this.supabaseUrl || !this.supabaseAnonKey) {
+			throw new Error(
+				"Supabase URL and Anon Key must be provided in environment variables NG_APP_SUPABASE_URL and NG_APP_SUPABASE_ANON_KEY",
+			);
+		}
+
+		this.supabase = createClient(this.supabaseUrl, this.supabaseAnonKey, {
+			auth: {
+				persistSession: true,
+				autoRefreshToken: true,
+				detectSessionInUrl: true,
+			},
+		});
+
 		// 1) Prime from current session once (no await in field init)
 		this.supabase.auth.getSession().then(({ data }) => {
 			this.sessionSig.set(data.session ?? null);
@@ -59,7 +73,7 @@ export class AuthService {
 		}
 	}
 
-	Register(email: string, password: string) {
+	register(email: string, password: string) {
 		return this.supabase.auth.signUp({ email, password });
 	}
 

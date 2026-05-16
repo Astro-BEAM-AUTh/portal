@@ -75,7 +75,7 @@ export class Register {
 		if (!password) {
 			password = "";
 		}
-		const { error } = await this.auth.Register(email, password);
+		const { error } = await this.auth.register(email, password);
 		if (error) {
 			this.snackBar.open(error.message, "Close", {
 				duration: 3000,

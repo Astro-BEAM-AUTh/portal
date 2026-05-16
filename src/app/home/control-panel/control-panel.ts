@@ -41,7 +41,7 @@ import { AuthService } from "../../../services/auth";
 	],
 })
 export class ControlPanel {
-	private ObservationsService = inject(ObservationsService);
+	private observationsService = inject(ObservationsService);
 	private fb = inject(FormBuilder);
 	public auth = inject(AuthService);
 	private snackBar = inject(MatSnackBar);
@@ -50,7 +50,7 @@ export class ControlPanel {
 	public form;
 
 	constructor() {
-		this.fields = this.ObservationsService.observation_fields;
+		this.fields = this.observationsService.observation_fields;
 		let controls: any = {};
 		for (let field of this.fields) {
 			controls[field.title] = [field.defaultValue, field.validators];
@@ -129,18 +129,18 @@ export class ControlPanel {
 
 		// Guests can submit but should keep an empty local history.
 		if (user) {
-			this.ObservationsService.addSubmission(pendingSubmission);
+			this.observationsService.addSubmission(pendingSubmission);
 		}
 
 		try {
-			const res = await this.ObservationsService.submitObservation(
+			const res = await this.observationsService.submitObservation(
 				reqBody,
 				session?.access_token,
 			);
 
 			if (!res.ok) {
 				if (user) {
-					this.ObservationsService.updateSubmissionStatus(
+					this.observationsService.updateSubmissionStatus(
 						pendingSubmission,
 						"failed",
 					);
@@ -156,7 +156,7 @@ export class ControlPanel {
 
 			// Submission is accepted by backend and remains pending until backend processing updates it.
 			if (user) {
-				this.ObservationsService.updateSubmissionStatus(
+				this.observationsService.updateSubmissionStatus(
 					pendingSubmission,
 					"pending",
 				);
@@ -175,7 +175,7 @@ export class ControlPanel {
 		} catch (e) {
 			// error handling
 			if (user) {
-				this.ObservationsService.updateSubmissionStatus(
+				this.observationsService.updateSubmissionStatus(
 					pendingSubmission,
 					"failed",
 				);
