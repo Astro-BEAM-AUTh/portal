@@ -1,60 +1,56 @@
 .control-panel-card {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
 
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-            overflow-y: auto;
+	.header {
+		width: 100%;
+		text-align: center;
+	}
 
-    .header {
-        width: 100%;
-        text-align: center;
-    }
+	.container {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
 
-    .container {
+		.content {
+			flex: 1;
+			padding: 1rem;
+			overflow-y: scroll !important;
+			scrollbar-width: auto; /* For Firefox */
+			scrollbar-color: #999999 #121316;
+		}
 
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-            overflow-y: auto;
+		/* For Webkit browsers (Chrome, Edge, Safari) */
+		.content::-webkit-scrollbar {
+			width: 8px;
+			background: #121316;
+		}
 
-        .content {
-            flex: 1;
-            padding: 1rem;
-            overflow-y: scroll !important;
-            scrollbar-width: auto; /* For Firefox */
-            scrollbar-color: #999999 #121316;
-        }
+		.container::-webkit-scrollbar-track {
+			background: #121316;
+			border-radius: 10px;
+		}
 
-        /* For Webkit browsers (Chrome, Edge, Safari) */
-        .content::-webkit-scrollbar {
-            width: 8px;
-            background: #121316;
-        }
+		/* 3. Style the thumb (the part you drag) */
+		.container::-webkit-scrollbar-thumb {
+			border-radius: 10px;
+			border: 2px solid #f1f1f1; /* Creates a little padding effect */
+		}
 
-        .container::-webkit-scrollbar-track {
-            background: #121316; 
-            border-radius: 10px;
-        }
+		/* 4. Keep it visible on hover so it doesn't change unpredictably */
+		.container::-webkit-scrollbar-thumb:hover {
+			background: #999;
+		}
+	}
 
-        /* 3. Style the thumb (the part you drag) */
-        .container::-webkit-scrollbar-thumb {
-            border-radius: 10px;
-            border: 2px solid #f1f1f1; /* Creates a little padding effect */
-        }
+	.footer {
+		padding: 1rem;
+	}
 
-        /* 4. Keep it visible on hover so it doesn't change unpredictably */
-        .container::-webkit-scrollbar-thumb:hover {
-            background: #999; 
-        }
-
-    }
-
-    .footer {
-        padding: 1rem;
-    }
-
-    .invalid {
-        --mdc-theme-primary: #f44336 !important; /* Red */
-    }
-
+	.invalid {
+		--mdc-theme-primary: #f44336 !important; /* Red */
+	}
 }

@@ -1,62 +1,54 @@
 {
-  "name": "portal",
-  "version": "1.1.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "github-build": "ng build --configuration production --base-href https://portal.astrobeam.gr/",
-    "test": "ng test"
-  },
-  "prettier": {
-    "printWidth": 100,
-    "singleQuote": true,
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
-  },
-  "private": true,
-  "dependencies": {
-    "@angular/cdk": "^21.2.10",
-    "@angular/common": "^21.2.12",
-    "@angular/compiler": "^21.2.12",
-    "@angular/core": "^21.2.12",
-    "@angular/forms": "^21.2.12",
-    "@angular/material": "^21.2.10",
-    "@angular/platform-browser": "^21.2.12",
-    "@angular/router": "^21.2.12",
-    "@fortawesome/fontawesome-free": "^7.2.0",
-    "@supabase/supabase-js": "^2.98.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0",
-    "zone.js": "~0.16.0"
-  },
-  "devDependencies": {
-    "@angular/build": "^21.2.10",
-    "@angular/cli": "^21.2.10",
-    "@angular/compiler-cli": "^21.2.12",
-    "@ngx-env/builder": "^21.0.1",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^13.0.0",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^12.0.6",
-    "@semantic-release/release-notes-generator": "^14.0.1",
-    "@types/jasmine": "~6.0.0",
-    "conventional-changelog-conventionalcommits": "^9.3.0",
-    "dotenv": "^17.3.1",
-    "jasmine-core": "~6.1.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.2.0",
-    "semantic-release": "^25.0.2",
-    "typescript": "~5.9.2"
-  }
+	"name": "portal",
+	"version": "1.1.0",
+	"scripts": {
+		"ng": "ng",
+		"start": "ng serve",
+		"build": "ng build",
+		"watch": "ng build --watch --configuration development",
+		"github-build": "ng build --configuration production --base-href https://portal.astrobeam.gr/",
+		"test": "ng test",
+		"gen:api-types:ts": "openapi-typescript http://localhost:8000/openapi.json -o src/api/backend-openapi.d.ts",
+		"gen:api-types:runtime": "node scripts/generate-openapi-runtime.mjs http://localhost:8000/openapi.json src/api/backend-openapi.runtime.ts",
+		"gen:api-types": "npm run gen:api-types:ts && npm run gen:api-types:runtime"
+	},
+	"private": true,
+	"dependencies": {
+		"@angular/cdk": "^21.2.9",
+		"@angular/common": "^21.2.11",
+		"@angular/compiler": "^21.2.11",
+		"@angular/core": "^21.2.11",
+		"@angular/forms": "^21.2.11",
+		"@angular/material": "^21.2.9",
+		"@angular/platform-browser": "^21.2.11",
+		"@angular/router": "^21.2.11",
+		"@fortawesome/fontawesome-free": "^7.2.0",
+		"@supabase/supabase-js": "^2.98.0",
+		"rxjs": "~7.8.0",
+		"tslib": "^2.3.0",
+		"zone.js": "~0.16.0"
+	},
+	"devDependencies": {
+		"@angular/build": "^21.2.9",
+		"@angular/cli": "^21.2.9",
+		"@angular/compiler-cli": "^21.2.11",
+		"@ngx-env/builder": "^21.0.1",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/commit-analyzer": "^13.0.0",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/github": "^12.0.6",
+		"@semantic-release/release-notes-generator": "^14.0.1",
+		"@types/jasmine": "~6.0.0",
+		"conventional-changelog-conventionalcommits": "^9.3.0",
+		"dotenv": "^17.3.1",
+		"jasmine-core": "~6.1.0",
+		"karma": "~6.4.0",
+		"karma-chrome-launcher": "~3.2.0",
+		"karma-coverage": "~2.2.0",
+		"karma-jasmine": "~5.1.0",
+		"karma-jasmine-html-reporter": "~2.2.0",
+		"openapi-typescript": "^7.13.0",
+		"semantic-release": "^25.0.2",
+		"typescript": "~5.9.2"
+	}
 }
