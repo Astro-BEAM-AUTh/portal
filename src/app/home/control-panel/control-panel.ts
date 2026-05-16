@@ -91,26 +91,23 @@ export class ControlPanel {
 
     observationData.output_filename = "Observation_" + formatDate(Date.now(), "yyyy-MM-dd-HH-mm-ss", "en-US");
 
-    let requestor;
+    let reqBody: observationBodyDTO;
     if (user) {
-      requestor = {
-        "email": user?.email || "",
-        "username": user?.user_metadata["username"] || user?.email?.split('@')[0] || "astro_user",
-        "user_id": user?.id || ""
-      }
+      reqBody = {
+        observation: observationData as ObservationCreateDTO,
+      };
     } else {
       const preferredEmail = String(this.form.value["prefEmail"] || "guest@astrobeam.gr");
       const guestId = `guest_${preferredEmail.toLowerCase()}`;
-      requestor = {
-        "email": preferredEmail,
-        "username": preferredEmail.split('@')[0] || guestId,
-        "user_id": guestId
+      reqBody = {
+        "observation": observationData as ObservationCreateDTO,
+        "requestor": {
+          "email": preferredEmail,
+          "username": preferredEmail.split('@')[0] || guestId,
+          "user_id": guestId,
+          "auth_provider": "guest"
+        },
       };
-    }
-
-    const reqBody: observationBodyDTO = {
-      "observation": observationData as ObservationCreateDTO,
-      "requestor": requestor,
     }
 
     const pendingSubmission = {

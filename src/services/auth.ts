@@ -74,9 +74,6 @@ export class AuthService {
   }
 }
 
-
-
-
 export const authGuard: CanActivateFn = async () => {
 
   const router = inject(Router);

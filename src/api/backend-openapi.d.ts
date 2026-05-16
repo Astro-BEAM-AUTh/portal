@@ -116,11 +116,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_submit_observation_v1_observations__post */
-        Body_submit_observation_v1_observations__post: {
-            observation: components["schemas"]["ObservationCreate"];
-            requestor: components["schemas"]["UserCreate"];
-        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -308,6 +303,16 @@ export interface components {
          */
         ObservationStatus: "pending" | "in_progress" | "completed" | "failed" | "cancelled";
         /**
+         * ObservationSubmissionRequest
+         * @description Payload for submitting an observation request.
+         */
+        ObservationSubmissionRequest: {
+            /** @description Observation submission payload */
+            observation: components["schemas"]["ObservationCreate"];
+            /** @description Optional guest requestor metadata */
+            requestor?: components["schemas"]["UserCreate"] | null;
+        };
+        /**
          * ObservationType
          * @description Enumeration for the type of an observation.
          * @enum {string}
@@ -348,6 +353,7 @@ export interface components {
          * UserCreate
          * @description Schema for creating a new user (API request).
          * @example {
+         *       "auth_provider": "supabase",
          *       "email": "software@astrobeam.gr",
          *       "user_id": "123456",
          *       "username": "astro_test_user"
@@ -370,6 +376,12 @@ export interface components {
              * @description Email address
              */
             email: string;
+            /**
+             * Auth Provider
+             * @description Authentication provider
+             * @default supabase
+             */
+            auth_provider: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -396,7 +408,9 @@ export interface operations {
     list_observations_v1_observations__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -418,18 +432,29 @@ export interface operations {
                 };
                 content?: never;
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     submit_observation_v1_observations__post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Body_submit_observation_v1_observations__post"];
+                "application/json": components["schemas"]["ObservationSubmissionRequest"];
             };
         };
         responses: {
@@ -463,7 +488,9 @@ export interface operations {
     get_observation_v1_observations__observation_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 observation_id: string;
             };
@@ -501,7 +528,9 @@ export interface operations {
     cancel_observation_v1_observations__observation_id__delete: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 observation_id: string;
             };
