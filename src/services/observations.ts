@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Validators } from '@angular/forms';
-import { inject, signal } from '@angular/core';
+import { inject, signal, effect } from '@angular/core';
 import { observationBodyDTO, ObservationCreateDTO, observationSubmissionDTO, ObservationStatusDTO } from '../app/home/control-panel/dtos/control-panel.dto';
 import { OBSERVATION_CREATE_DEFAULTS, OBSERVATION_TYPE_VALUES } from '../api/backend-openapi.runtime';
 import { AuthService } from './auth';
@@ -27,34 +27,41 @@ export interface ObservationFieldConfig {
 export class ObservationsService {
   private auth = inject(AuthService);
   private loaded = false;
+  private loading = false;
+  private loadedScope: string | null = null;
   private backendBaseUrl = (import.meta.env['NG_APP_BACKEND_URL'] || '').replace(/\/$/, '');
-  private observationsUrl = `${this.backendBaseUrl}/v1/observations`;
+  private observationsUrl = `${this.backendBaseUrl}/v1/observations/`;
   private submitUrl = this.observationsUrl;
   private historyUrl = this.observationsUrl;
   readonly guestHistoryDebugEnabled = String(import.meta.env['NG_APP_DEBUG_GUEST_HISTORY'] ?? 'true').toLowerCase() === 'true';
 
   constructor() {
+    // Keep history in sync with auth transitions.
     this.auth.supabase.auth.onAuthStateChange((event, _session) => {
       if (event === 'SIGNED_IN') {
-        if (!this.loaded) {
-          this.loadHistoryFromBackend();
-        }
-        this.loaded = true;
+        this.loaded = false;
+        this.loadedScope = null;
+        this.deleteHistoryInstance();
+        void this.loadHistoryFromBackend(true);
       }
+
       if (event === 'SIGNED_OUT') {
         this.deleteHistoryInstance();
         this.loaded = false;
+        this.loadedScope = null;
         if (this.guestHistoryDebugEnabled) {
-          // TODO: Remove guest-wide history access after debug phase and restore user-scoped visibility.
-          this.loadHistoryFromBackend();
+          void this.loadHistoryFromBackend(true);
         }
       }
     })
 
-    const user = this.auth.user();
-    if ((user || this.guestHistoryDebugEnabled) && !this.loaded && (!this.history() || this.history().length === 0)) {
-      this.loadHistoryFromBackend();
-    }
+    // Wait for session to be loaded before attempting to load history
+    // This prevents race conditions where the token isn't available yet
+    effect(() => {
+      if (this.auth.sessionLoaded()) {
+        void this.loadHistoryFromBackend();
+      }
+    });
   }
 
   observation_fields: ObservationFieldConfig[] = [
@@ -203,8 +210,11 @@ export class ObservationsService {
     });
   }
 
-  async loadHistoryFromBackend() {
-    if (!this.auth.user() && !this.guestHistoryDebugEnabled) {
+  async loadHistoryFromBackend(forceReload = false) {
+    const userId = this.auth.getCurrentUserId();
+    const currentScope = userId ? `user:${userId}` : (this.guestHistoryDebugEnabled ? 'guest' : null);
+
+    if (!currentScope) {
       return;
     }
 
@@ -213,7 +223,12 @@ export class ObservationsService {
       return;
     }
 
+    if (!forceReload && (this.loading || (this.loaded && this.loadedScope === currentScope))) {
+      return;
+    }
+
     try {
+      this.loading = true;
       const accessToken = this.auth.getAccessToken();
       const res = await fetch(this.historyUrl, {
         method: 'GET',
@@ -231,10 +246,20 @@ export class ObservationsService {
       const payload = await res.json();
       const items = Array.isArray(payload) ? payload : (Array.isArray(payload?.data) ? payload.data : []);
 
+      // If auth context changed while awaiting network, do not commit stale results.
+      const latestUserId = this.auth.getCurrentUserId();
+      const latestScope = latestUserId ? `user:${latestUserId}` : (this.guestHistoryDebugEnabled ? 'guest' : null);
+      if (latestScope !== currentScope) {
+        return;
+      }
+
       this.history.update(() => items as observationSubmissionDTO[]);
       this.loaded = true;
+      this.loadedScope = currentScope;
     } catch (error) {
       console.error('Failed to load observation history from backend', error);
+    } finally {
+      this.loading = false;
     }
   }
 
