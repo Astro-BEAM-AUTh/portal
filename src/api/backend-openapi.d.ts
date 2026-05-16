@@ -210,7 +210,10 @@ export interface components {
 		 *       "output_filename": "m31_observation.fits",
 		 *       "ra": 10.68470833,
 		 *       "rf_gain": 30,
-		 *       "status": "pending",
+		 *       "if_gain": 20,
+		 *       "bb_gain": 10,
+		 *       "observation_type": "TARGET_OBSERVATION",
+		 *       "status": "PENDING",
 		 *       "submitted_at": "2023-11-10T12:34:56Z",
 		 *       "target_name": "M31",
 		 *       "user_id": 42
@@ -302,11 +305,11 @@ export interface components {
 		 * @enum {string}
 		 */
 		ObservationStatus:
-			| "pending"
-			| "in_progress"
-			| "completed"
-			| "failed"
-			| "cancelled";
+			| "PENDING"
+			| "IN_PROGRESS"
+			| "COMPLETED"
+			| "FAILED"
+			| "CANCELLED";
 		/**
 		 * ObservationSubmissionRequest
 		 * @description Payload for submitting an observation request.
@@ -323,9 +326,9 @@ export interface components {
 		 * @enum {string}
 		 */
 		ObservationType:
-			| "hot_calibration"
-			| "cold_calibration"
-			| "target_observation";
+			| "HOT_CALIBRATION"
+			| "COLD_CALIBRATION"
+			| "TARGET_OBSERVATION";
 		/**
 		 * StatusResponse
 		 * @description Generic status response for health checks and system status.

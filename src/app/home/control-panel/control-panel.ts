@@ -62,7 +62,11 @@ export class ControlPanel {
 		if (fieldTitle === "observationType" && typeof value === "string") {
 			return value
 				.split("_")
-				.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+				.map(
+					(part) =>
+						part.charAt(0).toUpperCase() +
+						part.slice(1).toLowerCase(),
+				)
 				.join(" ");
 		}
 
@@ -118,20 +122,6 @@ export class ControlPanel {
 			};
 		}
 
-		const pendingSubmission = {
-			...reqBody.observation,
-			observation_id: "pending_local",
-			user_id: -1,
-			status: "pending" as const,
-			submitted_at: new Date().toISOString(),
-			completed_at: null,
-		};
-
-		// Guests can submit but should keep an empty local history.
-		if (user) {
-			this.observationsService.addSubmission(pendingSubmission);
-		}
-
 		try {
 			const res = await this.observationsService.submitObservation(
 				reqBody,
@@ -139,12 +129,6 @@ export class ControlPanel {
 			);
 
 			if (!res.ok) {
-				if (user) {
-					this.observationsService.updateSubmissionStatus(
-						pendingSubmission,
-						"failed",
-					);
-				}
 				this.snackBar.open(`Request failed: ${res.status}`, "Close", {
 					duration: 5000,
 					horizontalPosition: "center",
@@ -154,13 +138,8 @@ export class ControlPanel {
 				return;
 			}
 
-			// Submission is accepted by backend and remains pending until backend processing updates it.
-			if (user) {
-				this.observationsService.updateSubmissionStatus(
-					pendingSubmission,
-					"pending",
-				);
-			}
+			// Keep UI as backend source-of-truth by reloading history after successful submission.
+			void this.observationsService.loadHistoryFromBackend(true);
 
 			this.snackBar.open(
 				"Observation submitted and accepted for processing.",
@@ -173,13 +152,6 @@ export class ControlPanel {
 				},
 			);
 		} catch (e) {
-			// error handling
-			if (user) {
-				this.observationsService.updateSubmissionStatus(
-					pendingSubmission,
-					"failed",
-				);
-			}
 			console.error(e);
 			this.snackBar.open(`Error submitting request.`, "Close", {
 				duration: 5000,

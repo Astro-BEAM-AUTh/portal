@@ -5,7 +5,6 @@ import {
 	observationBodyDTO,
 	ObservationCreateDTO,
 	observationSubmissionDTO,
-	ObservationStatusDTO,
 } from "../app/home/control-panel/dtos/control-panel.dto";
 import {
 	OBSERVATION_CREATE_DEFAULTS,
@@ -36,6 +35,10 @@ export class ObservationsService {
 	private loaded = false;
 	private loading = false;
 	private loadedScope: string | null = null;
+	private readonly historyRefreshMs = Number(
+		import.meta.env["NG_APP_OBSERVATION_HISTORY_REFRESH_MS"] ?? 30000,
+	);
+	private historyRefreshTimer: ReturnType<typeof setInterval> | null = null;
 	private backendBaseUrl = (
 		import.meta.env["NG_APP_BACKEND_URL"] || ""
 	).replace(/\/$/, "");
@@ -74,6 +77,8 @@ export class ObservationsService {
 				void this.loadHistoryFromBackend();
 			}
 		});
+
+		this.startHistoryAutoRefresh();
 	}
 
 	observation_fields: ObservationFieldConfig[] = [
@@ -212,33 +217,24 @@ export class ObservationsService {
 
 	readonly history = signal<observationSubmissionDTO[] | []>([]);
 
-	addSubmission(submission: observationSubmissionDTO) {
-		// Add to top of list
-		this.history.update((list) => [
-			submission,
-			...(list as observationSubmissionDTO[]),
-		]);
-	}
-
-	updateSubmissionStatus(
-		submission: observationSubmissionDTO,
-		status: ObservationStatusDTO,
-	) {
-		// Update specific item completely immutably
-		this.history.update((hist) =>
-			(hist as observationSubmissionDTO[]).map((obs) => {
-				if (obs.output_filename === submission.output_filename) {
-					obs.status = status;
-				}
-				return obs;
-			}),
-		);
-	}
-
 	deleteHistoryInstance() {
 		this.history.update(() => {
 			return [];
 		});
+	}
+
+	private startHistoryAutoRefresh() {
+		if (
+			this.historyRefreshTimer ||
+			!Number.isFinite(this.historyRefreshMs) ||
+			this.historyRefreshMs <= 0
+		) {
+			return;
+		}
+
+		this.historyRefreshTimer = setInterval(() => {
+			void this.loadHistoryFromBackend(true);
+		}, this.historyRefreshMs);
 	}
 
 	async submitObservation(reqBody: observationBodyDTO, accessToken?: string) {
@@ -324,6 +320,11 @@ export class ObservationsService {
 			this.history.update(() => items as observationSubmissionDTO[]);
 			this.loaded = true;
 			this.loadedScope = currentScope;
+
+			console.debug(
+				`Loaded observation history for scope ${currentScope}:`,
+				items,
+			);
 		} catch (error) {
 			console.error(
 				"Failed to load observation history from backend",
