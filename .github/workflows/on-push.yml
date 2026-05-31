@@ -16,6 +16,7 @@ jobs:
         uses: Astro-BEAM-AUTh/infrastructure/.github/workflows/deploy-and-release.yml@main
         with:
             redeploy: ${{ inputs.redeploy }}
+        secrets: inherit
         permissions:
             contents: write
             pages: write
