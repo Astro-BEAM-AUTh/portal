@@ -62,11 +62,7 @@ export class ControlPanel {
 		if (fieldTitle === "observationType" && typeof value === "string") {
 			return value
 				.split("_")
-				.map(
-					(part) =>
-						part.charAt(0).toUpperCase() +
-						part.slice(1).toLowerCase(),
-				)
+				.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
 				.join(" ");
 		}
 
@@ -74,20 +70,6 @@ export class ControlPanel {
 	}
 
 	async run() {
-		if (!this.auth.sessionLoaded()) {
-			this.snackBar.open(
-				"Session is still loading. Please try again.",
-				"Close",
-				{
-					duration: 3000,
-					horizontalPosition: "center",
-					verticalPosition: "bottom",
-					panelClass: ["warn-snackbar"],
-				},
-			);
-			return;
-		}
-
 		const user = this.auth.user();
 		const session = this.auth.session();
 
@@ -148,7 +130,7 @@ export class ControlPanel {
 					duration: 5000,
 					horizontalPosition: "center",
 					verticalPosition: "bottom",
-					panelClass: ["error-snackbar"], // TODO @dyka3773: Add the missing css class for error snackbars.
+					panelClass: ["error-snackbar"],
 				});
 				return;
 			}
@@ -163,7 +145,7 @@ export class ControlPanel {
 					duration: 5000,
 					horizontalPosition: "center",
 					verticalPosition: "bottom",
-					panelClass: ["success-snackbar"], // TODO @dyka3773: Add the missing css class for success snackbars.
+					panelClass: ["success-snackbar"],
 				},
 			);
 		} catch (e) {
@@ -172,8 +154,19 @@ export class ControlPanel {
 				duration: 5000,
 				horizontalPosition: "center",
 				verticalPosition: "bottom",
-				panelClass: ["error-snackbar"], // TODO @dyka3773: Add the missing css class for error snackbars.
+				panelClass: ["error-snackbar"],
 			});
+		}
+	}
+
+	async ngOnInit() {
+		while (!this.auth.sessionLoaded()) {
+			await new Promise((resolve) => setTimeout(resolve, 50));
+		}
+
+		const userEmail = this.auth.user()?.email;
+		if (userEmail) {
+			this.form.patchValue({ prefEmail: userEmail });
 		}
 	}
 }
