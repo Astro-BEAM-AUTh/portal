@@ -324,11 +324,6 @@ export class ObservationsService {
 			this.history.update(() => items as observationSubmissionDTO[]);
 			this.loaded = true;
 			this.loadedScope = currentScope;
-
-			console.debug(
-				`Loaded observation history for scope ${currentScope}:`,
-				items,
-			);
 		} catch (error) {
 			console.error(
 				"Failed to load observation history from backend",

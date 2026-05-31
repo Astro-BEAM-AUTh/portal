@@ -5,7 +5,7 @@
             <h3>Sign in with your email and password</h3>
         </div>
         <mat-card-actions>
-            <form style="width: 100%;" [formGroup]="form">
+            <form style="width: 100%;" [formGroup]="form" (ngSubmit)="emailLogin()">
                 <mat-form-field appearance="outline" style="width: 100%;">
                     <mat-label>E-mail</mat-label>
                     <input matInput formControlName="email" autocomplete="off">
@@ -15,15 +15,15 @@
                     <mat-label>Password</mat-label>
                     <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" type="password"
                         autocomplete="off">
-                    <button mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-pressed]="!hide"
+                    <button type="button" mat-icon-button matSuffix (click)="hide = !hide" [attr.aria-pressed]="!hide"
                         style="margin-right: 5px;">
                         <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
                     </button>
                 </mat-form-field>
                 <p></p>
-                <button class="primary-button" style="width: 100%;" (click)="emailLogin()" [disabled]="form.invalid || loading"
+                <button type="submit" class="primary-button" style="width: 100%;" [disabled]="form.invalid || loading"
                     mat-raised-button>Login</button>
-                <button class="primary-button" style="width: 100%; margin-top: 1vh;" (click)="guestLogin()"
+                <button type="button" class="primary-button" style="width: 100%; margin-top: 1vh;" (click)="guestLogin()"
                     mat-raised-button>Continue as Guest</button>
             </form>
         </mat-card-actions>

@@ -1,4 +1,4 @@
-import { Component, inject, signal } from "@angular/core";
+import { Component, inject } from "@angular/core";
 
 import {
 	FormBuilder,
@@ -95,7 +95,7 @@ export class Register {
 
 	private done() {
 		const redirectTo =
-			this.route.snapshot.queryParamMap.get("redirectTo") || "";
+			this.route.snapshot.queryParamMap.get("redirectTo") || "/";
 		this.router.navigateByUrl(redirectTo);
 	}
 

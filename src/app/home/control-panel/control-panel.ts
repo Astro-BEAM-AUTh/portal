@@ -74,6 +74,20 @@ export class ControlPanel {
 	}
 
 	async run() {
+		if (!this.auth.sessionLoaded()) {
+			this.snackBar.open(
+				"Session is still loading. Please try again.",
+				"Close",
+				{
+					duration: 3000,
+					horizontalPosition: "center",
+					verticalPosition: "bottom",
+					panelClass: ["warn-snackbar"],
+				},
+			);
+			return;
+		}
+
 		const user = this.auth.user();
 		const session = this.auth.session();
 
@@ -160,12 +174,6 @@ export class ControlPanel {
 				verticalPosition: "bottom",
 				panelClass: ["error-snackbar"], // TODO @dyka3773: Add the missing css class for error snackbars.
 			});
-		}
-	}
-
-	async ngOnInit() {
-		while (!this.auth.sessionLoaded()) {
-			await new Promise((resolve) => setTimeout(resolve, 50));
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, effect, inject } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
 import {
 	FormBuilder,
@@ -64,19 +64,17 @@ export class Home {
 			controls[field.title] = [field.defaultValue, field.validators];
 		}
 		this.form = this.fb.group(controls);
-	}
 
-	async ngOnInit() {
-		while (!this.auth.sessionLoaded()) {
-			await new Promise((resolve) => setTimeout(resolve, 50));
-		}
-		this.user = this.auth.user();
-		console.log(this.user);
+		effect(() => {
+			if (!this.auth.sessionLoaded()) {
+				return;
+			}
+			this.user = this.auth.user();
+		});
 	}
 
 	run() {
 		this.running = true;
-		console.log(this.form.value);
 	}
 
 	cancel() {
