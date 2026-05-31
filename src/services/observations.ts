@@ -43,14 +43,18 @@ export class ObservationsService {
 		import.meta.env["NG_APP_BACKEND_URL"] || ""
 	).replace(/\/$/, "");
 	private observationsUrl = `${this.backendBaseUrl}/v1/observations/`;
-	private submitUrl = this.observationsUrl || undefined; // In case the env variable is not set, set to undefined to avoid making requests to an invalid URL.
-	private historyUrl = this.observationsUrl || undefined; // In case the env variable is not set, set to undefined to avoid making requests to an invalid URL.
+	private submitUrl = this.observationsUrl;
+	private historyUrl = this.observationsUrl;
 	readonly guestHistoryDebugEnabled =
 		String(
 			import.meta.env["NG_APP_DEBUG_GUEST_HISTORY"] ?? "false",
 		).toLowerCase() === "true";
 
 	constructor() {
+		if (!import.meta.env["NG_APP_BACKEND_URL"]) {
+			throw new Error("NG_APP_BACKEND_URL is not set");
+		}
+
 		// Keep history in sync with auth transitions.
 		this.auth.supabase.auth.onAuthStateChange((event, _session) => {
 			if (event === "SIGNED_IN") {
@@ -105,7 +109,7 @@ export class ObservationsService {
 			alias: "Observation Type",
 			type: "select",
 			defaultValue: (OBSERVATION_CREATE_DEFAULTS.observation_type ??
-				"target_observation") as ObservationCreateDTO["observation_type"],
+				"TARGET_OBSERVATION") as ObservationCreateDTO["observation_type"],
 			values: [...OBSERVATION_TYPE_VALUES] as Array<
 				ObservationCreateDTO["observation_type"]
 			>,

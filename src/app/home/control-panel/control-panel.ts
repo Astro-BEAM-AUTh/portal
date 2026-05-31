@@ -87,7 +87,8 @@ export class ControlPanel {
 
 				const rawValue = formValue[field.title];
 				if (field.dataType === "number") {
-					(acc as any)[field.payloadKey] = Number(rawValue ?? 0);
+					(acc as any)[field.payloadKey] =
+						rawValue === "" ? null : Number(rawValue);
 				} else {
 					(acc as any)[field.payloadKey] = String(rawValue ?? "");
 				}
@@ -133,7 +134,7 @@ export class ControlPanel {
 					duration: 5000,
 					horizontalPosition: "center",
 					verticalPosition: "bottom",
-					panelClass: ["error-snackbar"],
+					panelClass: ["error-snackbar"], // TODO @dyka3773: Add the missing css class for error snackbars.
 				});
 				return;
 			}
@@ -148,7 +149,7 @@ export class ControlPanel {
 					duration: 5000,
 					horizontalPosition: "center",
 					verticalPosition: "bottom",
-					panelClass: ["success-snackbar"],
+					panelClass: ["success-snackbar"], // TODO @dyka3773: Add the missing css class for success snackbars.
 				},
 			);
 		} catch (e) {
@@ -157,7 +158,7 @@ export class ControlPanel {
 				duration: 5000,
 				horizontalPosition: "center",
 				verticalPosition: "bottom",
-				panelClass: ["error-snackbar"],
+				panelClass: ["error-snackbar"], // TODO @dyka3773: Add the missing css class for error snackbars.
 			});
 		}
 	}
