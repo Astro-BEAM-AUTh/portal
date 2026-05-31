@@ -1,142 +1,336 @@
-import { Injectable } from '@angular/core';
-import { Validators } from '@angular/forms';
-import { signal } from '@angular/core';
-import { observationFormDTO, observationSubmissionDTO } from '../app/home/control-panel/dtos/control-panel.dto';
+import { Injectable } from "@angular/core";
+import { Validators } from "@angular/forms";
+import { inject, signal, effect } from "@angular/core";
+import {
+	observationBodyDTO,
+	ObservationCreateDTO,
+	observationSubmissionDTO,
+} from "../app/home/control-panel/dtos/control-panel.dto";
+import {
+	OBSERVATION_CREATE_DEFAULTS,
+	OBSERVATION_TYPE_VALUES,
+} from "../api/backend-openapi.runtime";
+import { AuthService } from "./auth";
 
+type FieldType = "text" | "select";
+type FieldDataType = "string" | "number";
+
+export interface ObservationFieldConfig {
+	title: string;
+	alias: string;
+	type: FieldType;
+	placeholder?: string;
+	defaultValue?: string | number;
+	values?: Array<string | number>;
+	validators: unknown[];
+	payloadKey?: keyof ObservationCreateDTO;
+	dataType?: FieldDataType;
+}
 
 @Injectable({
-  providedIn: 'root',
+	providedIn: "root",
 })
-
 export class ObservationsService {
+	private auth = inject(AuthService);
+	private loaded = false;
+	private loading = false;
+	private loadedScope: string | null = null;
+	private readonly historyRefreshMs = Number(
+		import.meta.env["NG_APP_OBSERVATION_HISTORY_REFRESH_MS"] ?? 30000,
+	);
+	private historyRefreshTimer: ReturnType<typeof setInterval> | null = null;
+	private backendBaseUrl = (
+		import.meta.env["NG_APP_BACKEND_URL"] || ""
+	).replace(/\/$/, "");
+	private observationsUrl = `${this.backendBaseUrl}/v1/observations/`;
+	private submitUrl = this.observationsUrl;
+	private historyUrl = this.observationsUrl;
+	readonly guestHistoryDebugEnabled =
+		String(
+			import.meta.env["NG_APP_DEBUG_GUEST_HISTORY"] ?? "false",
+		).toLowerCase() === "true";
 
-  observation_fields = [
-    {
-      title: 'name',
-      alias: 'Observation Name',
-      type: 'text',
-      placeholder: 'Enter name here...',
-      validators: [Validators.required]
-    },
-    {
-      title: 'observationType',
-      alias: 'Observation Type',
-      type: 'select',
-      defaultValue: 'Hot Calibration',
-      values: ["Cold Calibration", "Hot Calibration", "Target Observation"],
-      validators: [Validators.required]
-    },
-    {
-      title: 'cFreq',
-      alias: 'Center Frequency (Hz)',
-      type: 'text',
-      defaultValue: '1.45e9',
-      validators: [Validators.required]
-    },
-    {
-      title: 'bandwidth',
-      alias: 'Bandwidth',
-      type: 'select',
-      defaultValue: '2.4MHz',
-      values: ["500kHz", "1MHz", "2MHz", "2.4MHz", "3.2MHz"],
-      validators: [Validators.required]
-    },
-    {
-      title: 'channels',
-      alias: 'Number of Channels',
-      type: 'select',
-      defaultValue: 2048,
-      values: [256, 512, 1024, 2048],
-      validators: [Validators.required]
-    },
-    {
-      title: 'bins',
-      alias: 'Number of Bins',
-      type: 'text',
-      defaultValue: 500,
-      validators: [Validators.required] //pending range
-    },
-    {
-      title: 'rfGain',
-      alias: 'RF Gain',
-      type: 'text',
-      defaultValue: 20,
-      validators: [Validators.required, Validators.min(0), Validators.max(30)]
-    },
-    {
-      title: 'ifGain',
-      alias: 'IF Gain',
-      type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(30)]
-    },
-    {
-      title: 'bbGain',
-      alias: 'BB Gain',
-      type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(30)]
-    },
-    {
-      title: 'ra',
-      alias: 'RA',
-      type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(359)]
-    },
-    {
-      title: 'dec',
-      alias: 'DEC',
-      type: 'text',
-      defaultValue: 10,
-      validators: [Validators.required, Validators.min(0), Validators.max(90)]
-    },
-    {
-      title: 'duration',
-      alias: 'Duration (in seconds)',
-      type: 'text',
-      defaultValue: 60,
-      placeholder: 'Enter the duration of the observation here...',
-      validators: [Validators.required, Validators.min(0), Validators.max(1800)]
-    },
-    {
-      title: 'csvBool',
-      alias: 'Receive Raw Data as CSV?',
-      type: 'select',
-      defaultValue: "No",
-      values: ["Yes", "No"],
-      validators: [Validators.required]
-    },
+	constructor() {
+		if (!import.meta.env["NG_APP_BACKEND_URL"]) {
+			throw new Error("NG_APP_BACKEND_URL is not set");
+		}
 
-  /*
-  observation object is assigned at runtime
-  integration duration same as duration in s
+		// Keep history in sync with auth transitions.
+		this.auth.supabase.auth.onAuthStateChange((event, _session) => {
+			if (event === "SIGNED_IN") {
+				this.loaded = false;
+				this.loadedScope = null;
+				this.deleteHistoryInstance();
+				void this.loadHistoryFromBackend(true);
+			}
+
+			if (event === "SIGNED_OUT") {
+				this.deleteHistoryInstance();
+				this.loaded = false;
+				this.loadedScope = null;
+				if (this.guestHistoryDebugEnabled) {
+					void this.loadHistoryFromBackend(true);
+				}
+			}
+		});
+
+		// Wait for session to be loaded before attempting to load history
+		// This prevents race conditions where the token isn't available yet
+		effect(() => {
+			if (this.auth.sessionLoaded()) {
+				void this.loadHistoryFromBackend();
+			}
+		});
+
+		this.startHistoryAutoRefresh();
+	}
+
+	observation_fields: ObservationFieldConfig[] = [
+		{
+			title: "targetName",
+			alias: "Target Name",
+			type: "text",
+			placeholder: "Enter target name...",
+			validators: [Validators.required],
+			payloadKey: "target_name",
+			dataType: "string",
+		},
+		{
+			title: "observationObject",
+			alias: "Observation Object",
+			type: "text",
+			placeholder: "Enter observation object...",
+			validators: [Validators.required],
+			payloadKey: "observation_object",
+			dataType: "string",
+		},
+		{
+			title: "observationType",
+			alias: "Observation Type",
+			type: "select",
+			defaultValue: (OBSERVATION_CREATE_DEFAULTS.observation_type ??
+				"TARGET_OBSERVATION") as ObservationCreateDTO["observation_type"],
+			values: [...OBSERVATION_TYPE_VALUES] as Array<
+				ObservationCreateDTO["observation_type"]
+			>,
+			validators: [Validators.required],
+			payloadKey: "observation_type",
+			dataType: "string",
+		},
+		{
+			title: "cFreq",
+			alias: "Center Frequency (MHz)",
+			type: "text",
+			defaultValue: 1450,
+			validators: [Validators.required, Validators.min(0.1)],
+			payloadKey: "center_frequency",
+			dataType: "number",
+		},
+		{
+			title: "rfGain",
+			alias: "RF Gain",
+			type: "text",
+			defaultValue: 0,
+			validators: [
+				Validators.required,
+				Validators.min(0),
+				Validators.max(30),
+			],
+			payloadKey: "rf_gain",
+			dataType: "number",
+		},
+		{
+			title: "ifGain",
+			alias: "IF Gain",
+			type: "text",
+			defaultValue: 0,
+			validators: [
+				Validators.required,
+				Validators.min(0),
+				Validators.max(30),
+			],
+			payloadKey: "if_gain",
+			dataType: "number",
+		},
+		{
+			title: "bbGain",
+			alias: "BB Gain",
+			type: "text",
+			defaultValue: 0,
+			validators: [
+				Validators.required,
+				Validators.min(0),
+				Validators.max(30),
+			],
+			payloadKey: "bb_gain",
+			dataType: "number",
+		},
+		{
+			title: "ra",
+			alias: "RA",
+			type: "text",
+			defaultValue: 0,
+			validators: [
+				Validators.required,
+				Validators.min(0),
+				Validators.max(359.999999),
+			],
+			payloadKey: "ra",
+			dataType: "number",
+		},
+		{
+			title: "dec",
+			alias: "DEC",
+			type: "text",
+			defaultValue: 0,
+			validators: [
+				Validators.required,
+				Validators.min(-90),
+				Validators.max(90),
+			],
+			payloadKey: "dec",
+			dataType: "number",
+		},
+		{
+			title: "integrationTime",
+			alias: "Integration Time (seconds)",
+			type: "text",
+			defaultValue: 60,
+			placeholder: "Enter integration time in seconds...",
+			validators: [
+				Validators.required,
+				Validators.min(0),
+				Validators.max(1800),
+			],
+			payloadKey: "integration_time",
+			dataType: "number",
+		},
+		{
+			title: "prefEmail",
+			alias: "Preferred Email",
+			type: "text",
+			defaultValue: "",
+			validators: [Validators.required, Validators.email],
+		},
+
+		/*
+  integration duration same as integration time in s
   autogen output filename
-
-  cooldown, no more than 1h between obs, maybe elevated privs
-
-  ranges:
-  center freq: - pending - (ex: 1.42e9)
-  bandwith: pending
-  bins: pending
   */
+	];
 
-  ];
+	readonly history = signal<observationSubmissionDTO[] | []>([]);
 
-  readonly history = signal<observationSubmissionDTO[]>([]);
+	deleteHistoryInstance() {
+		this.history.update(() => {
+			return [];
+		});
+	}
 
-  // ...existing code... (keep your existing fields config)
+	private startHistoryAutoRefresh() {
+		if (
+			this.historyRefreshTimer ||
+			!Number.isFinite(this.historyRefreshMs) ||
+			this.historyRefreshMs <= 0
+		) {
+			return;
+		}
 
-  addSubmission(submission: observationSubmissionDTO) {
-    // Add to top of list
-    this.history.update(list => [submission, ...list]);
-  }
+		this.historyRefreshTimer = setInterval(() => {
+			void this.loadHistoryFromBackend(true);
+		}, this.historyRefreshMs);
+	}
 
-  updateSubmissionStatus(submission: observationSubmissionDTO, status: "Finished"| "Pending" | "Rejected" | "Failed") {
-    // Update specific item completely immutably
-    this.history.update(list => 
-      list.map(item => item === submission ? { ...item, status } : item)
-    );
-  }
-  
+	async submitObservation(reqBody: observationBodyDTO, accessToken?: string) {
+		if (!this.submitUrl) {
+			throw new Error(
+				"Submission URL is not configured. Please set NG_APP_BACKEND_URL environment variable.",
+			);
+		}
+		return fetch(this.submitUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				...(accessToken
+					? { Authorization: `Bearer ${accessToken}` }
+					: {}),
+			},
+			body: JSON.stringify(reqBody),
+		});
+	}
+
+	async loadHistoryFromBackend(forceReload = false) {
+		const userId = this.auth.getCurrentUserId();
+		const currentScope = userId
+			? `user:${userId}`
+			: this.guestHistoryDebugEnabled
+				? "guest"
+				: null;
+
+		if (!currentScope) {
+			return;
+		}
+
+		if (!this.historyUrl) {
+			// Observation list endpoint is optional until backend connectivity is configured.
+			return;
+		}
+
+		if (
+			!forceReload &&
+			(this.loading || (this.loaded && this.loadedScope === currentScope))
+		) {
+			return;
+		}
+
+		try {
+			this.loading = true;
+			const accessToken = this.auth.getAccessToken();
+			const res = await fetch(this.historyUrl, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					...(accessToken
+						? { Authorization: `Bearer ${accessToken}` }
+						: {}),
+				},
+			});
+
+			if (!res.ok) {
+				console.error(
+					`Failed to fetch observation history: ${res.status}`,
+				);
+				return;
+			}
+
+			const payload = await res.json();
+			const items = Array.isArray(payload)
+				? payload
+				: Array.isArray(payload?.data)
+					? payload.data
+					: [];
+
+			// If auth context changed while awaiting network, do not commit stale results.
+			const latestUserId = this.auth.getCurrentUserId();
+			const latestScope = latestUserId
+				? `user:${latestUserId}`
+				: this.guestHistoryDebugEnabled
+					? "guest"
+					: null;
+			if (latestScope !== currentScope) {
+				return;
+			}
+
+			this.history.update(() => items as observationSubmissionDTO[]);
+			this.loaded = true;
+			this.loadedScope = currentScope;
+		} catch (error) {
+			console.error(
+				"Failed to load observation history from backend",
+				error,
+			);
+		} finally {
+			this.loading = false;
+		}
+	}
 }

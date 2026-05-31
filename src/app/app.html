@@ -5,9 +5,17 @@
       <h4 class="title" style="margin-left: 25px;">Radiometer Control</h4>
       <span class="spacer"></span>
       @if (auth.isAuthenticated()) {
-      <button matIconButton matTooltip="Log-out" (click)="logout()">
-        <mat-icon>logout</mat-icon>
-      </button>
+        <button matIconButton matTooltip="Log-out" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+        </button>
+      } 
+      @else {
+        <button matIconButton matTooltip="Log-In" (click)="login()">
+          <mat-icon><i class="fas fa-sm fa-sign-in-alt"></i></mat-icon>
+        </button>
+        <button matIconButton matTooltip="Register" (click)="register()">
+          <mat-icon><i class="fas fa-sm fa-user-plus"></i></mat-icon>
+        </button>
       }
     </span>
   </mat-toolbar>
