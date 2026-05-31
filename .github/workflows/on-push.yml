@@ -4,10 +4,18 @@ on:
     push:
         branches: [ main ]
     workflow_dispatch:
+        inputs:
+            redeploy:
+                description: Force build and deploy even when there is no new release
+                required: false
+                type: boolean
+                default: false
 
 jobs:
     call-deploy-and-release:
         uses: Astro-BEAM-AUTh/infrastructure/.github/workflows/deploy-and-release.yml@main
+        with:
+            redeploy: ${{ inputs.redeploy }}
         permissions:
             contents: write
             pages: write
