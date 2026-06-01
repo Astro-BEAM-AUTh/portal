@@ -19,7 +19,7 @@
                         <div>You have no observation submissions yet.</div>
                     }
 
-                    @for(pastSubmission of observationSubmissions(); track pastSubmission){
+                    @for(pastSubmission of observationSubmissions(); track getObservationTrackKey(pastSubmission)){
                         <div>{{pastSubmission.target_name}}'s status: {{pastSubmission.status}}</div>
                     }
                 }
@@ -51,8 +51,11 @@
                         <div>Your observation history is currently empty.</div>
                     }
                     <mat-accordion>
-                        @for(pastSubmission of observationSubmissions(); track pastSubmission){
-                            <mat-expansion-panel>
+                        @for(pastSubmission of observationSubmissions(); track getObservationTrackKey(pastSubmission)){
+                            <mat-expansion-panel
+                                [expanded]="isObservationExpanded(pastSubmission)"
+                                (opened)="setObservationExpanded(pastSubmission, true)"
+                                (closed)="setObservationExpanded(pastSubmission, false)">
                                 <mat-expansion-panel-header>
                                     <mat-panel-title>
                                         {{pastSubmission.target_name || "Untitled Target"}}

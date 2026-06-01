@@ -1,4 +1,4 @@
-import { Component, inject } from "@angular/core";
+import { Component, effect, inject } from "@angular/core";
 import { MatCardModule } from "@angular/material/card";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatExpansionModule } from "@angular/material/expansion";
@@ -37,12 +37,57 @@ export class ObservationHistory {
 
 	private obsService = inject(ObservationsService);
 	private authService = inject(AuthService);
+	private expandedObservationKeys = new Set<string>();
 	observationSubmissions = this.obsService.history;
 	isAuthenticated = this.authService.isAuthenticated;
 	sessionLoaded = this.authService.sessionLoaded;
 	isGuestDebugHistoryEnabled = this.obsService.guestHistoryDebugEnabled;
 
-	constructor() {}
+	constructor() {
+		effect(() => {
+			const currentObservationKeys = new Set(
+				this.observationSubmissions().map((submission) =>
+					this.getObservationTrackKey(submission),
+				),
+			);
+
+			for (const expandedKey of Array.from(
+				this.expandedObservationKeys,
+			)) {
+				if (!currentObservationKeys.has(expandedKey)) {
+					this.expandedObservationKeys.delete(expandedKey);
+				}
+			}
+		});
+	}
+
+	getObservationTrackKey(pastSubmission: observationSubmissionDTO): string {
+		if (pastSubmission.id != null) {
+			return `obs-${pastSubmission.id}`;
+		}
+
+		const target = pastSubmission.target_name ?? "untitled";
+		return `obs-${target}-${pastSubmission.created_on}-${pastSubmission.ra}-${pastSubmission.dec}`;
+	}
+
+	isObservationExpanded(pastSubmission: observationSubmissionDTO): boolean {
+		return this.expandedObservationKeys.has(
+			this.getObservationTrackKey(pastSubmission),
+		);
+	}
+
+	setObservationExpanded(
+		pastSubmission: observationSubmissionDTO,
+		expanded: boolean,
+	): void {
+		const key = this.getObservationTrackKey(pastSubmission);
+		if (expanded) {
+			this.expandedObservationKeys.add(key);
+			return;
+		}
+
+		this.expandedObservationKeys.delete(key);
+	}
 
 	getNonNullFieldRows(
 		pastSubmission: observationSubmissionDTO,
