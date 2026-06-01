@@ -7,10 +7,14 @@ import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from "@angular/material/input";
 import { MatSelectModule } from "@angular/material/select";
 import { MatButtonModule } from "@angular/material/button";
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatSnackBar, MatSnackBarModule } from "@angular/material/snack-bar";
 import { MAT_SELECT_SCROLL_STRATEGY } from "@angular/material/select";
 import { Overlay } from "@angular/cdk/overlay";
-import { ObservationsService } from "../../../services/observations";
+import {
+	ObservationFieldConfig,
+	ObservationsService,
+} from "../../../services/observations";
 import {
 	observationBodyDTO,
 	ObservationCreateDTO,
@@ -26,6 +30,7 @@ import { AuthService } from "../../../services/auth";
 		MatFormFieldModule,
 		MatInputModule,
 		MatSelectModule,
+		MatCheckboxModule,
 		MatButtonModule,
 		MatSnackBarModule,
 	],
@@ -58,7 +63,10 @@ export class ControlPanel {
 		this.form = this.fb.group(controls);
 	}
 
-	formatSelectLabel(fieldTitle: string, value: string | number): string {
+	formatSelectLabel(
+		fieldTitle: string,
+		value: string | number | boolean,
+	): string {
 		if (fieldTitle === "observationType" && typeof value === "string") {
 			return value
 				.split("_")
@@ -67,6 +75,18 @@ export class ControlPanel {
 		}
 
 		return String(value);
+	}
+
+	getInputType(field: ObservationFieldConfig): string {
+		if (field.inputType) {
+			return field.inputType;
+		}
+
+		if (field.dataType === "number") {
+			return "number";
+		}
+
+		return "text";
 	}
 
 	async run() {
@@ -84,10 +104,30 @@ export class ControlPanel {
 				const rawValue = formValue[field.title];
 				if (field.dataType === "number") {
 					(acc as any)[field.payloadKey] =
-						rawValue === "" ? null : Number(rawValue);
-				} else {
-					(acc as any)[field.payloadKey] = String(rawValue ?? "");
+						rawValue === "" || rawValue == null
+							? null
+							: Number(rawValue);
+					return acc;
 				}
+
+				if (field.dataType === "boolean") {
+					(acc as any)[field.payloadKey] = Boolean(rawValue);
+					return acc;
+				}
+
+				if (field.dataType === "datetime") {
+					const value = String(rawValue ?? "").trim();
+					(acc as any)[field.payloadKey] = value
+						? new Date(value).toISOString()
+						: null;
+					return acc;
+				}
+
+				const value = String(rawValue ?? "").trim();
+				(acc as any)[field.payloadKey] =
+					field.payloadKey === "target_name" && value.length === 0
+						? null
+						: value;
 
 				return acc;
 			},

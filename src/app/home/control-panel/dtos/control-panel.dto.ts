@@ -2,7 +2,8 @@ import type { components } from "../../../../api/backend-openapi";
 
 export type ObservationCreateDTO = components["schemas"]["ObservationCreate"];
 export type ObservationReadDTO = components["schemas"]["ObservationRead"];
-export type ObservationStatusDTO = components["schemas"]["ObservationStatus"];
+export type ObservationStatusDTO =
+	components["schemas"]["ObservationStatusEnum"];
 
 export interface ObservationRequestorDTO {
 	email: string;

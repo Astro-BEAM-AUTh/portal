@@ -116,6 +116,33 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
 	schemas: {
+		/**
+		 * BandwidthEnum
+		 * @description Enumeration for observation bandwidths around the central frequencies.
+		 * @enum {number}
+		 */
+		BandwidthEnum:
+			| 1.5
+			| 1.75
+			| 2.5
+			| 2.75
+			| 3
+			| 3.84
+			| 5.5
+			| 6
+			| 7
+			| 8.75
+			| 10
+			| 12
+			| 14
+			| 20
+			| 28;
+		/**
+		 * CentralFrequencyEnum
+		 * @description Enumeration for central frequencies.
+		 * @enum {number}
+		 */
+		CentralFrequencyEnum: 1420 | 1670 | 22000;
 		/** HTTPValidationError */
 		HTTPValidationError: {
 			/** Detail */
@@ -125,17 +152,19 @@ export interface components {
 		 * ObservationCreate
 		 * @description Schema for creating a new observation (API request).
 		 * @example {
-		 *       "bb_gain": 10,
-		 *       "center_frequency": 1400,
+		 *       "bandwidth": 20,
+		 *       "center_frequency": 1420,
 		 *       "dec": 41.26875,
-		 *       "if_gain": 20,
+		 *       "fft_size": 1024,
 		 *       "integration_time": 600,
-		 *       "observation_object": "Andromeda Galaxy",
-		 *       "observation_type": "target_observation",
-		 *       "output_filename": "m31_observation.fits",
+		 *       "observation_type": "TARGET_OBSERVATION",
+		 *       "output_filename": "m31_observation",
+		 *       "perform_data_analysis": true,
+		 *       "planned_start": "2026-11-15T20:00:00",
 		 *       "ra": 10.68470833,
-		 *       "rf_gain": 30,
-		 *       "target_name": "M31"
+		 *       "receive_csv": false,
+		 *       "target_name": "M31",
+		 *       "velocity_frame": "LSRK"
 		 *     }
 		 */
 		ObservationCreate: {
@@ -143,12 +172,7 @@ export interface components {
 			 * Target Name
 			 * @description Name of the observation target
 			 */
-			target_name: string;
-			/**
-			 * Observation Object
-			 * @description Object being observed
-			 */
-			observation_object: string;
+			target_name: string | null;
 			/**
 			 * Ra
 			 * @description Right Ascension in degrees
@@ -160,63 +184,81 @@ export interface components {
 			 */
 			dec: number;
 			/**
-			 * Center Frequency
+			 * @description Bandwidth in MHz
+			 * @default 1.5
+			 */
+			bandwidth: components["schemas"]["BandwidthEnum"];
+			/**
 			 * @description Center frequency in MHz
+			 * @default 1420
 			 */
-			center_frequency: number;
+			center_frequency: components["schemas"]["CentralFrequencyEnum"];
 			/**
-			 * Rf Gain
-			 * @description RF gain in dB
+			 * @description Velocity reference frame
+			 * @default LSRK
 			 */
-			rf_gain: number;
-			/**
-			 * If Gain
-			 * @description IF gain in dB
-			 */
-			if_gain: number;
-			/**
-			 * Bb Gain
-			 * @description Baseband gain in dB
-			 */
-			bb_gain: number;
+			velocity_frame: components["schemas"]["ReferenceFrameEnum"];
 			/**
 			 * @description Type of observation
-			 * @default target_observation
+			 * @default TARGET_OBSERVATION
 			 */
-			observation_type: components["schemas"]["ObservationType"];
+			observation_type: components["schemas"]["ObservationTypeEnum"];
+			/**
+			 * Fft Size
+			 * @description FFT size for spectral observations
+			 * @default 1024
+			 */
+			fft_size: number;
 			/**
 			 * Integration Time
 			 * @description Integration time in seconds
 			 */
 			integration_time: number;
 			/**
+			 * Planned Start
+			 * @description Planned start time for the observation
+			 */
+			planned_start?: string | null;
+			/**
 			 * Output Filename
 			 * @description Filename for the observation data
 			 */
 			output_filename: string;
+			/**
+			 * Receive Csv
+			 * @description Whether the user wants to receive a CSV containing frequency-power pairs
+			 * @default false
+			 */
+			receive_csv: boolean;
+			/**
+			 * Perform Data Analysis
+			 * @description Whether to perform data analysis and generate plots
+			 * @default true
+			 */
+			perform_data_analysis: boolean;
 		};
 		/**
 		 * ObservationRead
 		 * @description Schema for reading an observation (API response).
 		 * @example {
-		 *       "bb_gain": 10,
-		 *       "center_frequency": 1400,
+		 *       "bandwidth": 20,
+		 *       "center_frequency": 1420,
+		 *       "created_on": "2026-11-10T12:34:56",
 		 *       "dec": 41.26875,
-		 *       "if_gain": 20,
+		 *       "fft_size": 1024,
+		 *       "id": 13,
 		 *       "integration_time": 600,
-		 *       "observation_id": "obs_20231110_001",
-		 *       "observation_object": "Andromeda Galaxy",
-		 *       "observation_type": "target_observation",
-		 *       "output_filename": "m31_observation.fits",
-		 *       "ra": 10.68470833,
-		 *       "rf_gain": 30,
-		 *       "if_gain": 20,
-		 *       "bb_gain": 10,
 		 *       "observation_type": "TARGET_OBSERVATION",
+		 *       "output_filename": "m31_observation",
+		 *       "perform_data_analysis": true,
+		 *       "planned_start": "2026-11-15T20:00:00",
+		 *       "ra": 10.68470833,
+		 *       "receive_csv": false,
 		 *       "status": "PENDING",
-		 *       "submitted_at": "2023-11-10T12:34:56Z",
 		 *       "target_name": "M31",
-		 *       "user_id": 42
+		 *       "updated_on": "2026-11-10T13:34:56",
+		 *       "user_id": 42,
+		 *       "velocity_frame": "LSRK"
 		 *     }
 		 */
 		ObservationRead: {
@@ -224,12 +266,7 @@ export interface components {
 			 * Target Name
 			 * @description Name of the observation target
 			 */
-			target_name: string;
-			/**
-			 * Observation Object
-			 * @description Object being observed
-			 */
-			observation_object: string;
+			target_name: string | null;
 			/**
 			 * Ra
 			 * @description Right Ascension in degrees
@@ -241,70 +278,109 @@ export interface components {
 			 */
 			dec: number;
 			/**
-			 * Center Frequency
+			 * @description Bandwidth in MHz
+			 * @default 1.5
+			 */
+			bandwidth: components["schemas"]["BandwidthEnum"];
+			/**
 			 * @description Center frequency in MHz
+			 * @default 1420
 			 */
-			center_frequency: number;
+			center_frequency: components["schemas"]["CentralFrequencyEnum"];
 			/**
-			 * Rf Gain
-			 * @description RF gain in dB
+			 * @description Velocity reference frame
+			 * @default LSRK
 			 */
-			rf_gain: number;
-			/**
-			 * If Gain
-			 * @description IF gain in dB
-			 */
-			if_gain: number;
-			/**
-			 * Bb Gain
-			 * @description Baseband gain in dB
-			 */
-			bb_gain: number;
+			velocity_frame: components["schemas"]["ReferenceFrameEnum"];
 			/**
 			 * @description Type of observation
-			 * @default target_observation
+			 * @default TARGET_OBSERVATION
 			 */
-			observation_type: components["schemas"]["ObservationType"];
+			observation_type: components["schemas"]["ObservationTypeEnum"];
+			/**
+			 * Fft Size
+			 * @description FFT size for spectral observations
+			 * @default 1024
+			 */
+			fft_size: number;
 			/**
 			 * Integration Time
 			 * @description Integration time in seconds
 			 */
 			integration_time: number;
 			/**
+			 * Planned Start
+			 * @description Planned start time for the observation
+			 */
+			planned_start?: string | null;
+			/**
 			 * Output Filename
 			 * @description Filename for the observation data
 			 */
 			output_filename: string;
 			/**
-			 * Observation Id
+			 * Receive Csv
+			 * @description Whether the user wants to receive a CSV containing frequency-power pairs
+			 * @default false
+			 */
+			receive_csv: boolean;
+			/**
+			 * Perform Data Analysis
+			 * @description Whether to perform data analysis and generate plots
+			 * @default true
+			 */
+			perform_data_analysis: boolean;
+			/**
+			 * Id
 			 * @description Unique observation identifier
 			 */
-			observation_id: string;
+			id: number;
 			/**
 			 * User Id
 			 * @description ID of the user who submitted the observation
 			 */
 			user_id: number;
 			/** @description Current observation status */
-			status: components["schemas"]["ObservationStatus"];
+			status: components["schemas"]["ObservationStatusEnum"];
 			/**
-			 * Submitted At
+			 * Created On
 			 * Format: date-time
-			 * @description Timestamp of submission
+			 * @description Timestamp of creation
 			 */
-			submitted_at: string;
+			created_on: string;
 			/**
-			 * Completed At
+			 * Updated On
+			 * Format: date-time
+			 * @description Timestamp of last update
+			 */
+			updated_on: string;
+			/**
+			 * Completed On
 			 * @description Timestamp of completion
 			 */
-			completed_at?: string | null;
+			completed_on?: string | null;
+			/**
+			 * Csv Download Url
+			 * @description Pre-signed URL for downloading the CSV file (if receive_csv is True)
+			 */
+			csv_download_url?: string | null;
+			/**
+			 * Analysis Results Url
+			 * @description Pre-signed URL for downloading the analysis results (if perform_data_analysis is True)
+			 */
+			analysis_results_url?: string | null;
+			/**
+			 * Data Download Url
+			 * @description Pre-signed URL for downloading the observation data
+			 */
+			data_download_url?: string | null;
 		};
 		/**
-		 * ObservationStatus
+		 * ObservationStatusEnum
 		 * @description Enumeration for the status of an observation.
 		 * @enum {string}
 		 */
-		ObservationStatus:
+		ObservationStatusEnum:
 			| "PENDING"
 			| "IN_PROGRESS"
 			| "COMPLETED"
@@ -321,14 +397,26 @@ export interface components {
 			requestor?: components["schemas"]["UserCreate"] | null;
 		};
 		/**
-		 * ObservationType
+		 * ObservationTypeEnum
 		 * @description Enumeration for the type of an observation.
 		 * @enum {string}
 		 */
-		ObservationType:
+		ObservationTypeEnum:
 			| "HOT_CALIBRATION"
 			| "COLD_CALIBRATION"
 			| "TARGET_OBSERVATION";
+		/**
+		 * ReferenceFrameEnum
+		 * @description Enumeration for the velocity reference frame.
+		 *
+		 *     - TOPO: Topocentric frame, the raw, uncorrected frame of our antenna sitting exactly where it is on Earth. Used for calibration, debugging, and observing satellites.
+		 *     - LSRK: Local Standard of Rest Kinematic frame, a theoretical frame moving in a perfect, circular orbit around the center of the Milky Way. It removes the Earth's spin, the Earth's orbit, and the Sun's messy localized wobbling. This should be our software's default setting, it is the standard for galactic radio astronomy. Anytime a user observes 1.42 GHz Milky Way Hydrogen or local 22 GHz galactic water masers, they must use LSRK.
+		 *     - BARY: Barycentric frame, the center of mass of our Solar System. It removes the Earth's orbit and spin, but keeps the Sun's movement. Used for extragalactic observations. If the user points the telescope at a quasar billions of light-years away, or a pulsar in another galaxy, the local spinning of our Milky Way doesn't matter. Barycentric is the standard for anything outside our galaxy.
+		 *     - HELIO: Heliocentric frame, the exact center of the Sun. It is incredibly close mathematically to Barycentric (since the Sun holds most of the Solar System's mass). However, many older optical astronomy catalogs and specific pulsar databases publish their coordinates and velocities in the Heliocentric frame. We include this for compatibility with those specific databases.
+		 *     - GEO: Geocentric frame, the center of the Earth. It removes the Earth's daily rotation, but keeps the Earth's orbit around the Sun. Used when observing the Moon, near-Earth asteroids, or geostationary satellites.
+		 * @enum {string}
+		 */
+		ReferenceFrameEnum: "TOPO" | "LSRK" | "BARY" | "HELIO" | "GEO";
 		/**
 		 * StatusResponse
 		 * @description Generic status response for health checks and system status.
@@ -364,7 +452,7 @@ export interface components {
 		 * UserCreate
 		 * @description Schema for creating a new user (API request).
 		 * @example {
-		 *       "auth_provider": "supabase",
+		 *       "auth_provider": "guest",
 		 *       "email": "software@astrobeam.gr",
 		 *       "user_id": "123456",
 		 *       "username": "astro_test_user"
@@ -390,7 +478,7 @@ export interface components {
 			/**
 			 * Auth Provider
 			 * @description Authentication provider
-			 * @default supabase
+			 * @default guest
 			 */
 			auth_provider: string;
 		};
@@ -503,7 +591,7 @@ export interface operations {
 				authorization?: string | null;
 			};
 			path: {
-				observation_id: string;
+				observation_id: number;
 			};
 			cookie?: never;
 		};
@@ -543,7 +631,7 @@ export interface operations {
 				authorization?: string | null;
 			};
 			path: {
-				observation_id: string;
+				observation_id: number;
 			};
 			cookie?: never;
 		};
