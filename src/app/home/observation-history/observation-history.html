@@ -59,33 +59,14 @@
                                     </mat-panel-title>
                                 </mat-expansion-panel-header>
                                 <div>
-                                    <div><strong>Observation Type:</strong> {{pastSubmission.observation_type}}</div>
-                                    <div><strong>Velocity Frame:</strong> {{pastSubmission.velocity_frame}}</div>
-                                    <div><strong>Bandwidth:</strong> {{pastSubmission.bandwidth}} MHz</div>
-                                    <div><strong>Center Frequency:</strong> {{pastSubmission.center_frequency}} MHz</div>
-                                    <div><strong>FFT Size:</strong> {{pastSubmission.fft_size}}</div>
-                                    <div><strong>RA:</strong> {{pastSubmission.ra}}</div>
-                                    <div><strong>DEC:</strong> {{pastSubmission.dec}}</div>
-                                    <div><strong>Duration:</strong> {{pastSubmission.integration_time}} s</div>
-                                    <div><strong>Created:</strong> {{pastSubmission.created_on}}</div>
-                                    <div><strong>Completed:</strong> {{pastSubmission.completed_on || "-"}}</div>
-                                    <div><strong>Observation ID:</strong> {{pastSubmission.id}}</div>
-                                    @if (pastSubmission.data_download_url) {
+                                    @for (row of getNonNullFieldRows(pastSubmission); track row.key) {
                                         <div>
-                                            <strong>Data:</strong>
-                                            <a [href]="pastSubmission.data_download_url" target="_blank" rel="noopener noreferrer">Download</a>
-                                        </div>
-                                    }
-                                    @if (pastSubmission.csv_download_url) {
-                                        <div>
-                                            <strong>CSV:</strong>
-                                            <a [href]="pastSubmission.csv_download_url" target="_blank" rel="noopener noreferrer">Download</a>
-                                        </div>
-                                    }
-                                    @if (pastSubmission.analysis_results_url) {
-                                        <div>
-                                            <strong>Analysis:</strong>
-                                            <a [href]="pastSubmission.analysis_results_url" target="_blank" rel="noopener noreferrer">Download</a>
+                                            <strong>{{row.label}}:</strong>
+                                            @if (row.isUrl) {
+                                                <a [href]="row.value" target="_blank" rel="noopener noreferrer">Download</a>
+                                            } @else {
+                                                {{row.value}}
+                                            }
                                         </div>
                                     }
                                 </div>
