@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- insertion marker -->
 
+## [1.3.1](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.3.0...v1.3.1) (2026-06-14)
+
+### Bug Fixes
+
+* update redeploy condition to handle workflow dispatch input correctly ([d332ec3](https://github.com/Astro-BEAM-AUTh/portal/commit/d332ec3773930abb03b0fda017115bd19878d2a6))
+
 ## [1.3.0](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.2.0...v1.3.0) (2026-06-14)
 
 ### Features
