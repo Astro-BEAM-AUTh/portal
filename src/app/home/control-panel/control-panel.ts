@@ -117,8 +117,11 @@ export class ControlPanel {
 
 				if (field.dataType === "datetime") {
 					const value = String(rawValue ?? "").trim();
+					// datetime-local emits a local wall-clock time (no timezone); keep it timezone-less for the API.
 					(acc as any)[field.payloadKey] = value
-						? new Date(value).toISOString()
+						? value.length === 16
+							? `${value}:00`
+							: value
 						: null;
 					return acc;
 				}
