@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 <!-- insertion marker -->
 
+## [1.3.0](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.2.0...v1.3.0) (2026-06-14)
+
+### Features
+
+* present all non null fields in the observation history pane ([bfc3006](https://github.com/Astro-BEAM-AUTh/portal/commit/bfc3006762f8ecaeb40fe39ca7c6decd331447a6))
+* Update Observation Request model and submission form ([80d6ea0](https://github.com/Astro-BEAM-AUTh/portal/commit/80d6ea039706b0089c464f1cb6f1420893aa9cb4))
+
+### Bug Fixes
+
+* **chore:** increase maximum bundle size to compensate for the extra 22KBs this build is failing for ([7e60208](https://github.com/Astro-BEAM-AUTh/portal/commit/7e602083a632c208dbc08aada67fc550cf29ba65))
+* handle datetime-local input format for API compatibility ([50862b9](https://github.com/Astro-BEAM-AUTh/portal/commit/50862b905719025db1ce9edec3d7a16fa68818d0))
+* make observation history refresh without closing open panes ([531a33e](https://github.com/Astro-BEAM-AUTh/portal/commit/531a33ede1b151297d4ec304339487d318eabe20))
+
+### Dependencies
+
+* bump npm-dependencies group across 1 directory with 2 updates ([e59ee9c](https://github.com/Astro-BEAM-AUTh/portal/commit/e59ee9cab420655607ffbcce52f458f50fc2741d))
+* bump the angular-dependencies group across 1 directory with 2 updates ([74f2fe8](https://github.com/Astro-BEAM-AUTh/portal/commit/74f2fe811743f7034db7d029bc06aa2023e9a04a))
+
+### Chores
+
+* add the missing env var in the example file ([0b8e593](https://github.com/Astro-BEAM-AUTh/portal/commit/0b8e593bc28bd1d2b6688e5fa92a7cf31fe25c13))
+* make redeploying github pages available ([a3e5498](https://github.com/Astro-BEAM-AUTh/portal/commit/a3e5498bb8c0ebfac2339420365ec8823a29dfc0))
+* make redeploying github pages available ([96b75de](https://github.com/Astro-BEAM-AUTh/portal/commit/96b75ded0a9a2806f233e647514684a6964413d1))
+* make remote job calling inherit organization secrets ([6ca2ec3](https://github.com/Astro-BEAM-AUTh/portal/commit/6ca2ec349775a7e38dd5f42e58780f8d33b89174))
+
 ## [1.2.0](https://github.com/Astro-BEAM-AUTh/portal/compare/v1.1.0...v1.2.0) (2026-05-31)
 
 ### Features
