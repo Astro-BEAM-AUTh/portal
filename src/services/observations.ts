@@ -7,24 +7,29 @@ import {
 	observationSubmissionDTO,
 } from "../app/home/control-panel/dtos/control-panel.dto";
 import {
+	BANDWIDTH_VALUES,
+	CENTRAL_FREQUENCY_VALUES,
 	OBSERVATION_CREATE_DEFAULTS,
 	OBSERVATION_TYPE_VALUES,
+	REFERENCE_FRAME_VALUES,
 } from "../api/backend-openapi.runtime";
 import { AuthService } from "./auth";
 
-type FieldType = "text" | "select";
-type FieldDataType = "string" | "number";
+type FieldType = "text" | "select" | "checkbox";
+type FieldDataType = "string" | "number" | "boolean" | "datetime";
+type FieldInputType = "text" | "number" | "email" | "datetime-local";
 
 export interface ObservationFieldConfig {
 	title: string;
 	alias: string;
 	type: FieldType;
 	placeholder?: string;
-	defaultValue?: string | number;
-	values?: Array<string | number>;
+	defaultValue?: string | number | boolean | null;
+	values?: Array<string | number | boolean>;
 	validators: unknown[];
 	payloadKey?: keyof ObservationCreateDTO;
 	dataType?: FieldDataType;
+	inputType?: FieldInputType;
 }
 
 @Injectable({
@@ -91,18 +96,10 @@ export class ObservationsService {
 			alias: "Target Name",
 			type: "text",
 			placeholder: "Enter target name...",
-			validators: [Validators.required],
+			validators: [],
 			payloadKey: "target_name",
 			dataType: "string",
-		},
-		{
-			title: "observationObject",
-			alias: "Observation Object",
-			type: "text",
-			placeholder: "Enter observation object...",
-			validators: [Validators.required],
-			payloadKey: "observation_object",
-			dataType: "string",
+			inputType: "text",
 		},
 		{
 			title: "observationType",
@@ -118,52 +115,57 @@ export class ObservationsService {
 			dataType: "string",
 		},
 		{
+			title: "velocityFrame",
+			alias: "Velocity Frame",
+			type: "select",
+			defaultValue: (OBSERVATION_CREATE_DEFAULTS.velocity_frame ??
+				"LSRK") as ObservationCreateDTO["velocity_frame"],
+			values: [...REFERENCE_FRAME_VALUES] as Array<
+				ObservationCreateDTO["velocity_frame"]
+			>,
+			validators: [Validators.required],
+			payloadKey: "velocity_frame",
+			dataType: "string",
+		},
+		{
+			title: "bandwidth",
+			alias: "Bandwidth (MHz)",
+			type: "select",
+			defaultValue: (OBSERVATION_CREATE_DEFAULTS.bandwidth ??
+				1.5) as ObservationCreateDTO["bandwidth"],
+			values: [...BANDWIDTH_VALUES] as Array<
+				ObservationCreateDTO["bandwidth"]
+			>,
+			validators: [Validators.required],
+			payloadKey: "bandwidth",
+			dataType: "number",
+		},
+		{
 			title: "cFreq",
 			alias: "Center Frequency (MHz)",
-			type: "text",
-			defaultValue: 1450,
-			validators: [Validators.required, Validators.min(0.1)],
+			type: "select",
+			defaultValue: (OBSERVATION_CREATE_DEFAULTS.center_frequency ??
+				1420) as ObservationCreateDTO["center_frequency"],
+			values: [...CENTRAL_FREQUENCY_VALUES] as Array<
+				ObservationCreateDTO["center_frequency"]
+			>,
+			validators: [Validators.required],
 			payloadKey: "center_frequency",
 			dataType: "number",
 		},
 		{
-			title: "rfGain",
-			alias: "RF Gain",
+			title: "fftSize",
+			alias: "FFT Size",
 			type: "text",
-			defaultValue: 0,
+			defaultValue: OBSERVATION_CREATE_DEFAULTS.fft_size ?? 1024,
 			validators: [
 				Validators.required,
-				Validators.min(0),
-				Validators.max(30),
+				Validators.min(64),
+				Validators.max(32768),
 			],
-			payloadKey: "rf_gain",
+			payloadKey: "fft_size",
 			dataType: "number",
-		},
-		{
-			title: "ifGain",
-			alias: "IF Gain",
-			type: "text",
-			defaultValue: 0,
-			validators: [
-				Validators.required,
-				Validators.min(0),
-				Validators.max(30),
-			],
-			payloadKey: "if_gain",
-			dataType: "number",
-		},
-		{
-			title: "bbGain",
-			alias: "BB Gain",
-			type: "text",
-			defaultValue: 0,
-			validators: [
-				Validators.required,
-				Validators.min(0),
-				Validators.max(30),
-			],
-			payloadKey: "bb_gain",
-			dataType: "number",
+			inputType: "number",
 		},
 		{
 			title: "ra",
@@ -177,6 +179,7 @@ export class ObservationsService {
 			],
 			payloadKey: "ra",
 			dataType: "number",
+			inputType: "number",
 		},
 		{
 			title: "dec",
@@ -190,20 +193,51 @@ export class ObservationsService {
 			],
 			payloadKey: "dec",
 			dataType: "number",
+			inputType: "number",
 		},
 		{
 			title: "integrationTime",
 			alias: "Integration Time (seconds)",
 			type: "text",
-			defaultValue: 60,
+			defaultValue: 600,
 			placeholder: "Enter integration time in seconds...",
 			validators: [
 				Validators.required,
-				Validators.min(0),
-				Validators.max(1800),
+				Validators.min(1),
+				Validators.max(86400),
 			],
 			payloadKey: "integration_time",
 			dataType: "number",
+			inputType: "number",
+		},
+		{
+			title: "plannedStart",
+			alias: "Planned Start (optional)",
+			type: "text",
+			defaultValue: "",
+			validators: [],
+			payloadKey: "planned_start",
+			dataType: "datetime",
+			inputType: "datetime-local",
+		},
+		{
+			title: "receiveCsv",
+			alias: "Receive CSV",
+			type: "checkbox",
+			defaultValue: OBSERVATION_CREATE_DEFAULTS.receive_csv ?? false,
+			validators: [],
+			payloadKey: "receive_csv",
+			dataType: "boolean",
+		},
+		{
+			title: "performDataAnalysis",
+			alias: "Perform Data Analysis",
+			type: "checkbox",
+			defaultValue:
+				OBSERVATION_CREATE_DEFAULTS.perform_data_analysis ?? true,
+			validators: [],
+			payloadKey: "perform_data_analysis",
+			dataType: "boolean",
 		},
 		{
 			title: "prefEmail",
@@ -211,12 +245,8 @@ export class ObservationsService {
 			type: "text",
 			defaultValue: "",
 			validators: [Validators.required, Validators.email],
+			inputType: "email",
 		},
-
-		/*
-  integration duration same as integration time in s
-  autogen output filename
-  */
 	];
 
 	readonly history = signal<observationSubmissionDTO[] | []>([]);
