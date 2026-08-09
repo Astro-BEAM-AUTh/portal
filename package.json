@@ -8,8 +8,8 @@
 		"watch": "ng build --watch --configuration development",
 		"github-build": "ng build --configuration production --base-href https://portal.astrobeam.gr/",
 		"test": "ng test",
-		"gen:api-types:ts": "openapi-typescript http://localhost:8000/openapi.json -o src/api/backend-openapi.d.ts",
-		"gen:api-types:runtime": "node scripts/generate-openapi-runtime.mjs http://localhost:8000/openapi.json src/api/backend-openapi.runtime.ts",
+		"gen:api-types:ts": "openapi-typescript http://localhost:8080/openapi.json -o src/api/backend-openapi.d.ts",
+		"gen:api-types:runtime": "node scripts/generate-openapi-runtime.mjs http://localhost:8080/openapi.json src/api/backend-openapi.runtime.ts",
 		"gen:api-types": "npm run gen:api-types:ts && npm run gen:api-types:runtime"
 	},
 	"private": true,
@@ -22,7 +22,6 @@
 		"@angular/material": "^21.2.14",
 		"@angular/platform-browser": "^21.2.19",
 		"@angular/router": "^21.2.19",
-		"@fortawesome/fontawesome-free": "^7.3.1",
 		"@supabase/supabase-js": "^2.110.8",
 		"rxjs": "~7.8.0",
 		"tslib": "^2.3.0",

@@ -2,7 +2,14 @@
   <mat-toolbar class="header">
     <span class="contents">
       <img class="logo" src="img/astrobeam-logo.png">
-      <h4 class="title" style="margin-left: 25px;">Radiometer Control</h4>
+      <div class="title-group">
+        <h4 class="title">Radiometer Control</h4>
+        <span class="version">
+          <span>FE v{{ appVersion }}</span>
+          <span class="separator">|</span>
+          <span>BE v{{ backendVersion() }}</span>
+        </span>
+      </div>
       <span class="spacer"></span>
       @if (auth.isAuthenticated()) {
         <button matIconButton matTooltip="Log-out" (click)="logout()">
@@ -11,10 +18,10 @@
       } 
       @else {
         <button matIconButton matTooltip="Log-In" (click)="login()">
-          <mat-icon><i class="fas fa-sm fa-sign-in-alt"></i></mat-icon>
+          <mat-icon>login</mat-icon>
         </button>
         <button matIconButton matTooltip="Register" (click)="register()">
-          <mat-icon><i class="fas fa-sm fa-user-plus"></i></mat-icon>
+          <mat-icon>person_add</mat-icon>
         </button>
       }
     </span>

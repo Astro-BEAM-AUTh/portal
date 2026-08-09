@@ -23,8 +23,28 @@
 				max-height: 95%;
 			}
 
-			.title {
+			.title-group {
+				display: flex;
+				align-items: baseline;
 				margin-left: 25px;
+				gap: 10px;
+			}
+
+			.title {
+				margin: 0;
+			}
+
+			.version {
+				display: inline-flex;
+				align-items: center;
+				gap: 8px;
+				color: rgba(255, 255, 255, 0.6);
+				font-size: 0.8rem;
+				font-weight: 400;
+
+				.separator {
+					color: rgba(255, 255, 255, 0.35);
+				}
 			}
 
 			.spacer {
