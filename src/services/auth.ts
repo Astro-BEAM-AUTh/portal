@@ -77,6 +77,45 @@ export class AuthService {
 		return this.supabase.auth.signUp({ email, password });
 	}
 
+	private async refreshAccessTokenIfPossible(): Promise<string | null> {
+		const refreshResult = await this.supabase.auth.refreshSession();
+		if (refreshResult.error) {
+			console.warn(
+				"Failed to refresh Supabase session",
+				refreshResult.error.message,
+			);
+			return null;
+		}
+
+		const refreshedSession = refreshResult.data.session ?? null;
+		this.sessionSig.set(refreshedSession);
+		return refreshedSession?.access_token ?? null;
+	}
+
+	async getValidAccessToken(forceRefresh = false): Promise<string | null> {
+		if (forceRefresh) {
+			return this.refreshAccessTokenIfPossible();
+		}
+
+		const currentSession = this.sessionSig();
+		if (currentSession?.access_token) {
+			return currentSession.access_token;
+		}
+
+		const sessionResult = await this.supabase.auth.getSession();
+		if (sessionResult.error) {
+			console.warn(
+				"Failed to read Supabase session",
+				sessionResult.error.message,
+			);
+			return null;
+		}
+
+		const session = sessionResult.data.session ?? null;
+		this.sessionSig.set(session);
+		return session?.access_token ?? null;
+	}
+
 	getAccessToken(): string | null {
 		const session = this.sessionSig();
 		return session?.access_token ?? null;
