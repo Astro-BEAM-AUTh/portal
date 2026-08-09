@@ -273,11 +273,19 @@ export class ObservationsService {
 
 	private buildAuthHeaders(
 		accessToken: string | null,
-	): Record<string, string> {
-		return {
-			"Content-Type": "application/json",
-			...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-		};
+		headers?: HeadersInit,
+	): Headers {
+		const mergedHeaders = new Headers(headers);
+
+		if (!mergedHeaders.has("Content-Type")) {
+			mergedHeaders.set("Content-Type", "application/json");
+		}
+
+		if (accessToken) {
+			mergedHeaders.set("Authorization", `Bearer ${accessToken}`);
+		}
+
+		return mergedHeaders;
 	}
 
 	private async executeWithTokenRefresh(
@@ -287,7 +295,7 @@ export class ObservationsService {
 		let accessToken = await this.auth.getValidAccessToken();
 		let response = await fetch(url, {
 			...init,
-			headers: this.buildAuthHeaders(accessToken),
+			headers: this.buildAuthHeaders(accessToken, init.headers),
 		});
 
 		if (response.status !== 401) {
@@ -301,7 +309,7 @@ export class ObservationsService {
 
 		return fetch(url, {
 			...init,
-			headers: this.buildAuthHeaders(accessToken),
+			headers: this.buildAuthHeaders(accessToken, init.headers),
 		});
 	}
 

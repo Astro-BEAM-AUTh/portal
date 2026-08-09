@@ -7,6 +7,8 @@ import { createClient } from "@supabase/supabase-js";
 	providedIn: "root",
 })
 export class AuthService {
+	private static readonly ACCESS_TOKEN_EXPIRY_SKEW_SECONDS = 30;
+
 	supabaseUrl = import.meta.env["NG_APP_SUPABASE_URL"];
 	supabaseAnonKey = import.meta.env["NG_APP_SUPABASE_ANON_KEY"];
 	supabase: import("@supabase/supabase-js").SupabaseClient<
@@ -92,13 +94,31 @@ export class AuthService {
 		return refreshedSession?.access_token ?? null;
 	}
 
+	private isSessionAccessTokenValid(
+		session: Session | null,
+	): session is Session {
+		if (!session?.access_token) {
+			return false;
+		}
+
+		if (typeof session.expires_at !== "number") {
+			return false;
+		}
+
+		const nowInSeconds = Math.floor(Date.now() / 1000);
+		return (
+			session.expires_at - AuthService.ACCESS_TOKEN_EXPIRY_SKEW_SECONDS >
+			nowInSeconds
+		);
+	}
+
 	async getValidAccessToken(forceRefresh = false): Promise<string | null> {
 		if (forceRefresh) {
 			return this.refreshAccessTokenIfPossible();
 		}
 
 		const currentSession = this.sessionSig();
-		if (currentSession?.access_token) {
+		if (this.isSessionAccessTokenValid(currentSession)) {
 			return currentSession.access_token;
 		}
 
@@ -113,7 +133,12 @@ export class AuthService {
 
 		const session = sessionResult.data.session ?? null;
 		this.sessionSig.set(session);
-		return session?.access_token ?? null;
+
+		if (this.isSessionAccessTokenValid(session)) {
+			return session.access_token;
+		}
+
+		return this.refreshAccessTokenIfPossible();
 	}
 
 	getAccessToken(): string | null {
