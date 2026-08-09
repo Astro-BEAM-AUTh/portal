@@ -7,6 +7,7 @@ import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from "@angular/material/tooltip";
 import { Router } from "@angular/router";
 import portalPackage from "../../package.json";
+import { BackendInfoService } from "../services/backend-info";
 
 @Component({
 	selector: "app-root",
@@ -23,7 +24,9 @@ import portalPackage from "../../package.json";
 export class App {
 	private router = inject(Router);
 	public auth = inject(AuthService);
+	private backendInfo = inject(BackendInfoService);
 	public appVersion = portalPackage.version;
+	public backendVersion = this.backendInfo.backendVersion;
 
 	async logout() {
 		this.auth.signOut();

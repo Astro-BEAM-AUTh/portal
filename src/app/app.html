@@ -4,7 +4,11 @@
       <img class="logo" src="img/astrobeam-logo.png">
       <div class="title-group">
         <h4 class="title">Radiometer Control</h4>
-        <span class="version">v{{ appVersion }}</span>
+        <span class="version">
+          <span>FE v{{ appVersion }}</span>
+          <span class="separator">|</span>
+          <span>BE v{{ backendVersion() }}</span>
+        </span>
       </div>
       <span class="spacer"></span>
       @if (auth.isAuthenticated()) {
