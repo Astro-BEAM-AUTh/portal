@@ -27,10 +27,7 @@
 								"input": "public"
 							}
 						],
-						"styles": [
-							"node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-							"src/styles.scss"
-						]
+						"styles": ["src/styles.scss"]
 					},
 					"configurations": {
 						"production": {
@@ -91,10 +88,7 @@
 								"input": "public"
 							}
 						],
-						"styles": [
-							"node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-							"src/styles.scss"
-						]
+						"styles": ["src/styles.scss"]
 					}
 				}
 			}
