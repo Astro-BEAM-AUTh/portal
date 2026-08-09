@@ -271,20 +271,70 @@ export class ObservationsService {
 		}, this.historyRefreshMs);
 	}
 
+	private buildAuthHeaders(
+		accessToken: string | null,
+		headers?: HeadersInit,
+	): Headers {
+		const mergedHeaders = new Headers(headers);
+
+		if (!mergedHeaders.has("Content-Type")) {
+			mergedHeaders.set("Content-Type", "application/json");
+		}
+
+		if (accessToken) {
+			mergedHeaders.set("Authorization", `Bearer ${accessToken}`);
+		}
+
+		return mergedHeaders;
+	}
+
+	private async executeWithTokenRefresh(
+		url: string,
+		init: RequestInit,
+	): Promise<Response> {
+		let accessToken = await this.auth.getValidAccessToken();
+		let response = await fetch(url, {
+			...init,
+			headers: this.buildAuthHeaders(accessToken, init.headers),
+		});
+
+		if (response.status !== 401) {
+			return response;
+		}
+
+		accessToken = await this.auth.getValidAccessToken(true);
+		if (!accessToken) {
+			return response;
+		}
+
+		return fetch(url, {
+			...init,
+			headers: this.buildAuthHeaders(accessToken, init.headers),
+		});
+	}
+
 	async submitObservation(reqBody: observationBodyDTO, accessToken?: string) {
 		if (!this.submitUrl) {
 			throw new Error(
 				"Submission URL is not configured. Please set NG_APP_BACKEND_URL environment variable.",
 			);
 		}
-		return fetch(this.submitUrl, {
+
+		if (accessToken) {
+			// Keep compatibility with explicit caller-provided tokens when available.
+			const initialResponse = await fetch(this.submitUrl, {
+				method: "POST",
+				headers: this.buildAuthHeaders(accessToken),
+				body: JSON.stringify(reqBody),
+			});
+
+			if (initialResponse.status !== 401) {
+				return initialResponse;
+			}
+		}
+
+		return this.executeWithTokenRefresh(this.submitUrl, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				...(accessToken
-					? { Authorization: `Bearer ${accessToken}` }
-					: {}),
-			},
 			body: JSON.stringify(reqBody),
 		});
 	}
@@ -315,15 +365,8 @@ export class ObservationsService {
 
 		try {
 			this.loading = true;
-			const accessToken = this.auth.getAccessToken();
-			const res = await fetch(this.historyUrl, {
+			const res = await this.executeWithTokenRefresh(this.historyUrl, {
 				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-					...(accessToken
-						? { Authorization: `Bearer ${accessToken}` }
-						: {}),
-				},
 			});
 
 			if (!res.ok) {

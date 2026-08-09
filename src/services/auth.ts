@@ -7,6 +7,8 @@ import { createClient } from "@supabase/supabase-js";
 	providedIn: "root",
 })
 export class AuthService {
+	private static readonly ACCESS_TOKEN_EXPIRY_SKEW_SECONDS = 30;
+
 	supabaseUrl = import.meta.env["NG_APP_SUPABASE_URL"];
 	supabaseAnonKey = import.meta.env["NG_APP_SUPABASE_ANON_KEY"];
 	supabase: import("@supabase/supabase-js").SupabaseClient<
@@ -75,6 +77,68 @@ export class AuthService {
 
 	register(email: string, password: string) {
 		return this.supabase.auth.signUp({ email, password });
+	}
+
+	private async refreshAccessTokenIfPossible(): Promise<string | null> {
+		const refreshResult = await this.supabase.auth.refreshSession();
+		if (refreshResult.error) {
+			console.warn(
+				"Failed to refresh Supabase session",
+				refreshResult.error.message,
+			);
+			return null;
+		}
+
+		const refreshedSession = refreshResult.data.session ?? null;
+		this.sessionSig.set(refreshedSession);
+		return refreshedSession?.access_token ?? null;
+	}
+
+	private isSessionAccessTokenValid(
+		session: Session | null,
+	): session is Session {
+		if (!session?.access_token) {
+			return false;
+		}
+
+		if (typeof session.expires_at !== "number") {
+			return false;
+		}
+
+		const nowInSeconds = Math.floor(Date.now() / 1000);
+		return (
+			session.expires_at - AuthService.ACCESS_TOKEN_EXPIRY_SKEW_SECONDS >
+			nowInSeconds
+		);
+	}
+
+	async getValidAccessToken(forceRefresh = false): Promise<string | null> {
+		if (forceRefresh) {
+			return this.refreshAccessTokenIfPossible();
+		}
+
+		const currentSession = this.sessionSig();
+		if (this.isSessionAccessTokenValid(currentSession)) {
+			return currentSession.access_token;
+		}
+
+		const sessionResult = await this.supabase.auth.getSession();
+		if (sessionResult.error) {
+			console.warn(
+				"Failed to read Supabase session",
+				sessionResult.error.message,
+			);
+			return null;
+		}
+
+		const session = sessionResult.data.session ?? null;
+		this.sessionSig.set(session);
+
+		if (this.isSessionAccessTokenValid(session)) {
+			return session.access_token;
+		}
+
+		return this.refreshAccessTokenIfPossible();
 	}
 
 	getAccessToken(): string | null {
